@@ -77,8 +77,31 @@ export function TransactionHistory({
     })
   }
 
+  const validateForm = () => {
+    const errors: {[key: string]: string} = {}
+    
+    if (!editForm.description.trim()) {
+      errors.description = 'Descrição é obrigatória'
+    }
+    
+    if (!editForm.amount || Number(editForm.amount) <= 0) {
+      errors.amount = 'Valor deve ser maior que zero'
+    }
+    
+    if (!editForm.category.trim()) {
+      errors.category = 'Categoria é obrigatória'
+    }
+    
+    if (!editForm.date) {
+      errors.date = 'Data é obrigatória'
+    }
+    
+    setFormErrors(errors)
+    return Object.keys(errors).length === 0
+  }
+
   const handleSaveEdit = () => {
-    if (editingTransaction && editForm.description && editForm.amount) {
+    if (validateForm() && editingTransaction) {
       onUpdateTransaction(editingTransaction.id, {
         description: editForm.description,
         amount: Number(editForm.amount),
@@ -94,6 +117,9 @@ export function TransactionHistory({
         category: '',
         date: ''
       })
+      setFormErrors({})
+      setShowSuccessMessage(true)
+      setTimeout(() => setShowSuccessMessage(false), 3000)
     }
   }
 
@@ -106,11 +132,14 @@ export function TransactionHistory({
       category: '',
       date: ''
     })
+    setFormErrors({})
   }
 
   const handleDelete = (id: string) => {
     if (confirm('Tem certeza que deseja excluir esta transação?')) {
       onDeleteTransaction(id)
+      setShowDeleteMessage(true)
+      setTimeout(() => setShowDeleteMessage(false), 3000)
     }
   }
 
@@ -127,6 +156,21 @@ export function TransactionHistory({
 
   return (
     <div className="space-y-6">
+      {/* Success Messages */}
+      {showSuccessMessage && (
+        <div className="fixed top-4 right-4 z-50 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-md flex items-center gap-2">
+          <Check className="h-4 w-4" />
+          Transação atualizada com sucesso!
+        </div>
+      )}
+      
+      {showDeleteMessage && (
+        <div className="fixed top-4 right-4 z-50 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-md flex items-center gap-2">
+          <XCircle className="h-4 w-4" />
+          Transação excluída com sucesso!
+        </div>
+      )}
+
       <div className="flex flex-col sm:flex-row gap-4">
         <h1 className="text-3xl font-bold">Histórico de Transações</h1>
       </div>
@@ -214,16 +258,32 @@ export function TransactionHistory({
                           value={editForm.description}
                           onChange={(e) => setEditForm({...editForm, description: e.target.value})}
                           placeholder="Descrição da transação"
+                          className={formErrors.description ? 'border-red-500' : ''}
                         />
+                        {formErrors.description && (
+                          <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
+                            <AlertCircle className="h-3 w-3" />
+                            {formErrors.description}
+                          </p>
+                        )}
                       </div>
                       <div>
                         <label className="text-sm font-medium">Valor</label>
                         <Input
                           type="number"
+                          step="0.01"
+                          min="0"
                           value={editForm.amount}
                           onChange={(e) => setEditForm({...editForm, amount: e.target.value})}
                           placeholder="0.00"
+                          className={formErrors.amount ? 'border-red-500' : ''}
                         />
+                        {formErrors.amount && (
+                          <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
+                            <AlertCircle className="h-3 w-3" />
+                            {formErrors.amount}
+                          </p>
+                        )}
                       </div>
                       <div>
                         <label className="text-sm font-medium">Tipo</label>
@@ -242,7 +302,14 @@ export function TransactionHistory({
                           value={editForm.category}
                           onChange={(e) => setEditForm({...editForm, category: e.target.value})}
                           placeholder="Categoria"
+                          className={formErrors.category ? 'border-red-500' : ''}
                         />
+                        {formErrors.category && (
+                          <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
+                            <AlertCircle className="h-3 w-3" />
+                            {formErrors.category}
+                          </p>
+                        )}
                       </div>
                       <div>
                         <label className="text-sm font-medium">Data</label>
@@ -250,14 +317,23 @@ export function TransactionHistory({
                           type="date"
                           value={editForm.date}
                           onChange={(e) => setEditForm({...editForm, date: e.target.value})}
+                          className={formErrors.date ? 'border-red-500' : ''}
                         />
+                        {formErrors.date && (
+                          <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
+                            <AlertCircle className="h-3 w-3" />
+                            {formErrors.date}
+                          </p>
+                        )}
                       </div>
                     </div>
                     <div className="flex gap-2">
-                      <Button onClick={handleSaveEdit} className="flex items-center gap-2">
+                      <Button onClick={handleSaveEdit} className="flex items-center gap-2 bg-green-600 hover:bg-green-700">
+                        <Save className="h-4 w-4" />
                         Salvar
                       </Button>
-                      <Button variant="outline" onClick={handleCancelEdit}>
+                      <Button variant="outline" onClick={handleCancelEdit} className="flex items-center gap-2">
+                        <X className="h-4 w-4" />
                         Cancelar
                       </Button>
                     </div>
@@ -329,10 +405,10 @@ export function TransactionHistory({
       {sortedTransactions.length > 0 && (
         <Card>
           <CardHeader>
-            <CardTitle>Resumo</CardTitle>
+            <CardTitle>Resumo das Transações</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
               <div className="text-center">
                 <p className="text-sm text-muted-foreground">Total de Transações</p>
                 <p className="text-2xl font-bold">{sortedTransactions.length}</p>
@@ -351,6 +427,28 @@ export function TransactionHistory({
                 <p className="text-sm text-muted-foreground">Despesas</p>
                 <p className="text-2xl font-bold text-red-600">
                   {formatCurrency(
+                    sortedTransactions
+                      .filter(t => t.type === 'expense')
+                      .reduce((sum, t) => sum + t.amount, 0)
+                  )}
+                </p>
+              </div>
+              <div className="text-center">
+                <p className="text-sm text-muted-foreground">Saldo</p>
+                <p className={`text-2xl font-bold ${
+                  sortedTransactions
+                    .filter(t => t.type === 'income')
+                    .reduce((sum, t) => sum + t.amount, 0) -
+                  sortedTransactions
+                    .filter(t => t.type === 'expense')
+                    .reduce((sum, t) => sum + t.amount, 0) >= 0 
+                    ? 'text-green-600' 
+                    : 'text-red-600'
+                }`}>
+                  {formatCurrency(
+                    sortedTransactions
+                      .filter(t => t.type === 'income')
+                      .reduce((sum, t) => sum + t.amount, 0) -
                     sortedTransactions
                       .filter(t => t.type === 'expense')
                       .reduce((sum, t) => sum + t.amount, 0)

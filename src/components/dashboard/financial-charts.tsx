@@ -1,7 +1,7 @@
 'use client'
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { TrendingUp, TrendingDown, DollarSign, BarChart3, PieChart } from 'lucide-react'
+import { TrendingUp, TrendingDown, DollarSign, Activity, PieChart } from 'lucide-react'
 
 interface Transaction {
   id: string
@@ -87,7 +87,7 @@ export function FinancialCharts({ transactions }: FinancialChartsProps) {
         <CardHeader className="bg-gradient-to-r from-slate-50 via-blue-50 to-indigo-50 border-b border-gray-100">
           <CardTitle className="flex items-center gap-3 text-slate-800">
             <div className="p-3 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl shadow-md">
-              <BarChart3 className="h-6 w-6 text-white" />
+              <Activity className="h-6 w-6 text-white" />
             </div>
             <div>
               <h3 className="text-xl font-bold">Análise Financeira Mensal</h3>
@@ -323,7 +323,7 @@ export function FinancialCharts({ transactions }: FinancialChartsProps) {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <BarChart3 className="h-5 w-5 text-orange-500" />
+              <Activity className="h-5 w-5 text-orange-500" />
               Métricas de Performance
             </CardTitle>
           </CardHeader>
