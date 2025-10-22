@@ -82,103 +82,163 @@ export function FinancialCharts({ transactions }: FinancialChartsProps) {
 
   return (
     <div className="space-y-6">
-      {/* Gráfico de Evolução Temporal */}
-      <Card className="overflow-hidden">
-        <CardHeader className="bg-gradient-to-r from-blue-50 to-indigo-50 border-b">
-          <CardTitle className="flex items-center gap-2 text-gray-800">
-            <div className="p-2 bg-blue-100 rounded-lg">
-              <TrendingUp className="h-5 w-5 text-blue-600" />
+      {/* Gráfico de Barras Interativo */}
+      <Card className="overflow-hidden shadow-lg">
+        <CardHeader className="bg-gradient-to-r from-slate-50 via-blue-50 to-indigo-50 border-b border-gray-100">
+          <CardTitle className="flex items-center gap-3 text-slate-800">
+            <div className="p-3 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl shadow-md">
+              <BarChart3 className="h-6 w-6 text-white" />
             </div>
-            Evolução Financeira
+            <div>
+              <h3 className="text-xl font-bold">Análise Financeira Mensal</h3>
+              <p className="text-sm text-slate-600 font-normal">Receitas, Despesas e Saldo por Período</p>
+            </div>
           </CardTitle>
         </CardHeader>
-        <CardContent className="p-6">
-          <div className="h-96 relative bg-gradient-to-b from-gray-50 to-white rounded-lg">
-            {/* Grid de fundo sutil */}
-            <div className="absolute inset-0 opacity-20">
-              {[...Array(5)].map((_, i) => (
-                <div 
-                  key={i} 
-                  className="absolute w-full border-t border-gray-200"
-                  style={{ top: `${(i + 1) * 20}%` }}
-                />
-              ))}
-            </div>
-            
-            {/* Área de dados */}
-            <div className="absolute inset-0 flex items-end justify-between px-6 pb-8">
-              {monthlyData.map((data, index) => (
-                <div key={data.month} className="flex flex-col items-center group">
-                  {/* Container das barras */}
-                  <div className="flex flex-col items-center space-y-1 mb-2">
-                    {/* Receitas - com gradiente e sombra sutil */}
-                    <div 
-                      className="w-12 bg-gradient-to-t from-emerald-500 to-emerald-400 rounded-t-lg shadow-sm transition-all duration-700 hover:shadow-md hover:scale-105 cursor-pointer"
-                      style={{ 
-                        height: `${(data.income / maxAmount) * 240}px`,
-                        minHeight: data.income > 0 ? '6px' : '0px'
-                      }}
-                      title={`Receitas: R$ ${data.income.toLocaleString('pt-BR')}`}
-                    >
-                      <div className="w-full h-full bg-gradient-to-t from-emerald-600 to-emerald-300 rounded-t-lg opacity-80"></div>
-                    </div>
-                    
-                    {/* Despesas - com gradiente e sombra sutil */}
-                    <div 
-                      className="w-12 bg-gradient-to-t from-rose-500 to-rose-400 rounded-b-lg shadow-sm transition-all duration-700 hover:shadow-md hover:scale-105 cursor-pointer"
-                      style={{ 
-                        height: `${(data.expense / maxAmount) * 240}px`,
-                        minHeight: data.expense > 0 ? '6px' : '0px'
-                      }}
-                      title={`Despesas: R$ ${data.expense.toLocaleString('pt-BR')}`}
-                    >
-                      <div className="w-full h-full bg-gradient-to-t from-rose-600 to-rose-300 rounded-b-lg opacity-80"></div>
-                    </div>
-                  </div>
-                  
-                  {/* Label do mês */}
-                  <span className="text-xs font-medium text-gray-500 group-hover:text-gray-700 transition-colors">
-                    {data.month}
-                  </span>
-                  
-                  {/* Valor total do mês */}
-                  <div className="mt-1 text-xs text-gray-400 group-hover:text-gray-600 transition-colors">
-                    R$ {(data.income + data.expense).toLocaleString('pt-BR', { maximumFractionDigits: 0 })}
-                  </div>
+        <CardContent className="p-8">
+          <div className="relative">
+            {/* Eixo Y com valores */}
+            <div className="absolute left-0 top-0 bottom-0 w-16 flex flex-col justify-between text-xs text-slate-500">
+              {[...Array(6)].map((_, i) => (
+                <div key={i} className="text-right pr-2">
+                  R$ {Math.round((maxAmount / 5) * (5 - i) / 1000)}k
                 </div>
               ))}
             </div>
             
-            {/* Linha de saldo com gradiente */}
-            <div className="absolute inset-0 flex items-end justify-between px-6 pb-8">
-              {monthlyData.map((data, index) => (
-                <div key={`balance-${data.month}`} className="flex flex-col items-center">
+            {/* Área do gráfico */}
+            <div className="ml-16 h-80 relative mb-20">
+              {/* Grid horizontal */}
+              <div className="absolute inset-0">
+                {[...Array(6)].map((_, i) => (
                   <div 
-                    className="w-1 bg-gradient-to-t from-blue-600 to-blue-400 rounded-full shadow-sm transition-all duration-700 hover:shadow-md hover:scale-110 cursor-pointer"
-                    style={{ 
-                      height: `${Math.max(0, (data.balance / maxAmount) * 240)}px`,
-                      minHeight: data.balance > 0 ? '3px' : '0px'
-                    }}
-                    title={`Saldo: R$ ${data.balance.toLocaleString('pt-BR')}`}
+                    key={i} 
+                    className="absolute w-full border-t border-slate-200"
+                    style={{ top: `${i * 20}%` }}
                   />
-                </div>
-              ))}
+                ))}
+              </div>
+              
+              {/* Barras do gráfico */}
+              <div className="absolute inset-0 flex items-end justify-between px-4 pb-2">
+                {monthlyData.map((data, index) => {
+                  const incomeHeight = (data.income / maxAmount) * 100
+                  const expenseHeight = (data.expense / maxAmount) * 100
+                  const balanceHeight = Math.abs(data.balance / maxAmount) * 100
+                  
+                  return (
+                    <div key={data.month} className="flex flex-col items-center group relative">
+                      {/* Container das barras */}
+                      <div className="flex items-end space-x-1 h-full">
+                        {/* Barra de Receitas */}
+                        <div className="flex flex-col items-center group/income">
+                          <div 
+                            className="w-8 bg-gradient-to-t from-emerald-600 via-emerald-500 to-emerald-400 rounded-t-lg shadow-lg transition-all duration-500 hover:shadow-xl hover:scale-110 cursor-pointer relative overflow-hidden"
+                            style={{ 
+                              height: `${incomeHeight}%`,
+                              minHeight: data.income > 0 ? '8px' : '0px'
+                            }}
+                            title={`Receitas: R$ ${data.income.toLocaleString('pt-BR')}`}
+                          >
+                            {/* Efeito de brilho */}
+                            <div className="absolute inset-0 bg-gradient-to-t from-transparent via-white/20 to-transparent"></div>
+                            {/* Valor no topo da barra */}
+                            {data.income > 0 && (
+                              <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 text-xs font-bold text-emerald-700 opacity-0 group-hover/income:opacity-100 transition-opacity duration-300 whitespace-nowrap">
+                                R$ {data.income.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                        
+                        {/* Barra de Despesas */}
+                        <div className="flex flex-col items-center group/expense">
+                          <div 
+                            className="w-8 bg-gradient-to-t from-rose-600 via-rose-500 to-rose-400 rounded-t-lg shadow-lg transition-all duration-500 hover:shadow-xl hover:scale-110 cursor-pointer relative overflow-hidden"
+                            style={{ 
+                              height: `${expenseHeight}%`,
+                              minHeight: data.expense > 0 ? '8px' : '0px'
+                            }}
+                            title={`Despesas: R$ ${data.expense.toLocaleString('pt-BR')}`}
+                          >
+                            {/* Efeito de brilho */}
+                            <div className="absolute inset-0 bg-gradient-to-t from-transparent via-white/20 to-transparent"></div>
+                            {/* Valor no topo da barra */}
+                            {data.expense > 0 && (
+                              <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 text-xs font-bold text-rose-700 opacity-0 group-hover/expense:opacity-100 transition-opacity duration-300 whitespace-nowrap">
+                                R$ {data.expense.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                      
+                      {/* Barra de Saldo (linha vertical) */}
+                      <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 group/balance">
+                        <div 
+                          className={`w-1 rounded-full shadow-md transition-all duration-500 hover:shadow-lg hover:scale-125 cursor-pointer ${
+                            data.balance >= 0 
+                              ? 'bg-gradient-to-t from-blue-600 to-blue-400' 
+                              : 'bg-gradient-to-t from-orange-600 to-orange-400'
+                          }`}
+                          style={{ 
+                            height: `${Math.min(balanceHeight, 100)}%`,
+                            minHeight: Math.abs(data.balance) > 0 ? '4px' : '0px'
+                          }}
+                          title={`Saldo: R$ ${data.balance.toLocaleString('pt-BR')}`}
+                        >
+                          {/* Indicador de saldo */}
+                          <div className={`absolute -top-2 left-1/2 transform -translate-x-1/2 w-3 h-3 rounded-full border-2 border-white shadow-sm ${
+                            data.balance >= 0 ? 'bg-blue-500' : 'bg-orange-500'
+                          }`}></div>
+                        </div>
+                        {/* Valor do saldo */}
+                        <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 text-xs font-bold opacity-0 group-hover/balance:opacity-100 transition-opacity duration-300 whitespace-nowrap">
+                          <span className={`${data.balance >= 0 ? 'text-blue-600' : 'text-orange-600'}`}>
+                            R$ {data.balance.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}
+                          </span>
+                        </div>
+                      </div>
+                      
+                      {/* Label do mês */}
+                      <div className="absolute -bottom-16 text-center w-20">
+                        <div className="text-sm font-semibold text-slate-700 group-hover:text-slate-900 transition-colors">
+                          {data.month}
+                        </div>
+                        <div className="text-xs text-slate-500 group-hover:text-slate-600 transition-colors">
+                          Total: R$ {(data.income + data.expense).toLocaleString('pt-BR', { maximumFractionDigits: 0 })}
+                        </div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
             </div>
           </div>
           
-          {/* Legenda elegante */}
-          <div className="flex justify-center space-x-8 mt-6">
-            <div className="flex items-center space-x-3 bg-emerald-50 px-4 py-2 rounded-full">
-              <div className="w-3 h-3 bg-gradient-to-r from-emerald-500 to-emerald-400 rounded-full shadow-sm"></div>
-              <span className="text-sm font-medium text-emerald-700">Receitas</span>
+          {/* Legenda interativa */}
+          <div className="flex flex-wrap justify-center gap-6 mt-8">
+            <div className="flex items-center space-x-3 bg-gradient-to-r from-emerald-50 to-emerald-100 px-6 py-3 rounded-xl shadow-sm hover:shadow-md transition-shadow duration-300 cursor-pointer">
+              <div className="w-4 h-4 bg-gradient-to-r from-emerald-500 to-emerald-400 rounded-full shadow-sm"></div>
+              <span className="text-sm font-semibold text-emerald-700">Receitas</span>
+              <div className="text-xs text-emerald-600 bg-emerald-200 px-2 py-1 rounded-full">
+                {transactions.filter(t => t.type === 'income').length} transações
+              </div>
             </div>
-            <div className="flex items-center space-x-3 bg-rose-50 px-4 py-2 rounded-full">
-              <div className="w-3 h-3 bg-gradient-to-r from-rose-500 to-rose-400 rounded-full shadow-sm"></div>
-              <span className="text-sm font-medium text-rose-700">Despesas</span>
+            <div className="flex items-center space-x-3 bg-gradient-to-r from-rose-50 to-rose-100 px-6 py-3 rounded-xl shadow-sm hover:shadow-md transition-shadow duration-300 cursor-pointer">
+              <div className="w-4 h-4 bg-gradient-to-r from-rose-500 to-rose-400 rounded-full shadow-sm"></div>
+              <span className="text-sm font-semibold text-rose-700">Despesas</span>
+              <div className="text-xs text-rose-600 bg-rose-200 px-2 py-1 rounded-full">
+                {transactions.filter(t => t.type === 'expense').length} transações
+              </div>
             </div>
-            <div className="flex items-center space-x-3 bg-blue-50 px-4 py-2 rounded-full">
-              <div className="w-3 h-3 bg-gradient-to-r from-blue-500 to-blue-400 rounded-full shadow-sm"></div>
-              <span className="text-sm font-medium text-blue-700">Saldo</span>
+            <div className="flex items-center space-x-3 bg-gradient-to-r from-blue-50 to-blue-100 px-6 py-3 rounded-xl shadow-sm hover:shadow-md transition-shadow duration-300 cursor-pointer">
+              <div className="w-4 h-4 bg-gradient-to-r from-blue-500 to-blue-400 rounded-full shadow-sm"></div>
+              <span className="text-sm font-semibold text-blue-700">Saldo Positivo</span>
+            </div>
+            <div className="flex items-center space-x-3 bg-gradient-to-r from-orange-50 to-orange-100 px-6 py-3 rounded-xl shadow-sm hover:shadow-md transition-shadow duration-300 cursor-pointer">
+              <div className="w-4 h-4 bg-gradient-to-r from-orange-500 to-orange-400 rounded-full shadow-sm"></div>
+              <span className="text-sm font-semibold text-orange-700">Saldo Negativo</span>
             </div>
           </div>
         </CardContent>

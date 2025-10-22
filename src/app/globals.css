@@ -70,3 +70,27 @@ body {
     transform: rotate(360deg);
   }
 }
+
+/* Ocultar avatar/símbolo do Next.js */
+#__next-build-watcher,
+.__next-dev-overlay,
+[data-nextjs-dialog],
+[data-nextjs-toast],
+.__next-dev-overlay-icon,
+#__next-route-announcer,
+[id^="__next"],
+[class^="__next"],
+[data-nextjs],
+button[data-nextjs-errors],
+button[data-nextjs-errors-dialog],
+nextjs-portal,
+.__next-dev-overlay-overlay,
+[aria-label*="Next.js"],
+[role="dialog"][data-nextjs],
+div[style*="position: fixed"][style*="z-index"],
+iframe[title*="vercel"] {
+  display: none !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}

@@ -85,10 +85,10 @@ export function Navigation({ activeTab, onTabChange }: NavigationProps) {
           <div className="px-4 pb-6">
             <Button
               variant="ghost"
-              className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
+              className="w-full justify-center text-red-600 hover:text-red-700 hover:bg-red-50"
               onClick={handleSignOut}
             >
-              <LogOut className="h-4 w-4 mr-3" />
+              <LogOut className="h-4 w-4 mr-2" />
               Sair
             </Button>
           </div>

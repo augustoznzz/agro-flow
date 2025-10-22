@@ -8,7 +8,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Calendar, Download, FileText } from 'lucide-react'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from 'recharts'
 import jsPDF from 'jspdf'
-import html2canvas from 'html2canvas'
 
 interface ReportData {
   period: string
@@ -135,38 +134,101 @@ export function ReportGenerator() {
 
     setIsGenerating(true)
     try {
-      const reportElement = document.getElementById('report-content')
-      if (!reportElement) return
-
-      const canvas = await html2canvas(reportElement, {
-        scale: 2,
-        useCORS: true,
-        allowTaint: true
-      })
-
-      const imgData = canvas.toDataURL('image/png')
+      // Método alternativo: criar PDF diretamente sem html2canvas
       const pdf = new jsPDF('p', 'mm', 'a4')
       
-      const imgWidth = 210
+      // Configurações
+      const pageWidth = 210
       const pageHeight = 295
-      const imgHeight = (canvas.height * imgWidth) / canvas.width
-      let heightLeft = imgHeight
-
-      let position = 0
-
-      pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight)
-      heightLeft -= pageHeight
-
-      while (heightLeft >= 0) {
-        position = heightLeft - imgHeight
-        pdf.addPage()
-        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight)
-        heightLeft -= pageHeight
+      const margin = 20
+      let yPosition = margin
+      const lineHeight = 7
+      
+      // Função para adicionar texto
+      const addText = (text: string, fontSize: number = 12, isBold: boolean = false, color: string = '#000000') => {
+        pdf.setFontSize(fontSize)
+        pdf.setFont('helvetica', isBold ? 'bold' : 'normal')
+        pdf.setTextColor(color)
+        pdf.text(text, margin, yPosition)
+        yPosition += lineHeight
       }
-
+      
+      // Função para verificar se precisa de nova página
+      const checkNewPage = () => {
+        if (yPosition > pageHeight - margin) {
+          pdf.addPage()
+          yPosition = margin
+        }
+      }
+      
+      // Cabeçalho
+      pdf.setFillColor(34, 197, 94) // Verde
+      pdf.rect(0, 0, pageWidth, 20, 'F')
+      pdf.setTextColor(255, 255, 255)
+      pdf.setFontSize(18)
+      pdf.setFont('helvetica', 'bold')
+      pdf.text('AgroFlow - Relatório Financeiro', margin, 15)
+      
+      yPosition = 35
+      pdf.setTextColor(0, 0, 0)
+      
+      // Período
+      addText(`Período: ${reportData.period}`, 14, true)
+      addText(`Data de geração: ${new Date().toLocaleDateString('pt-BR')}`, 10)
+      yPosition += 10
+      
+      // Métricas principais
+      addText('MÉTRICAS PRINCIPAIS', 14, true)
+      checkNewPage()
+      
+      addText(`Receita Total: R$ ${reportData.metrics.totalRevenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, 12, false, '#16a34a')
+      addText(`Despesas Totais: R$ ${reportData.metrics.totalExpenses.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, 12, false, '#dc2626')
+      addText(`Lucro Líquido: R$ ${reportData.metrics.netProfit.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, 12, true, reportData.metrics.netProfit >= 0 ? '#16a34a' : '#dc2626')
+      addText(`Safras Ativas: ${reportData.metrics.activeCrops}`, 12)
+      addText(`Propriedades: ${reportData.metrics.propertiesCount}`, 12)
+      
+      yPosition += 10
+      
+      // Resumo das safras
+      addText('RESUMO DAS SAFRAS', 14, true)
+      checkNewPage()
+      
+      reportData.cropData.forEach((crop, index) => {
+        addText(`${crop.name}:`, 12, true)
+        addText(`  Área: ${crop.area} hectares`, 10)
+        addText(`  Produção: ${crop.production.toLocaleString('pt-BR')} kg`, 10)
+        addText(`  Receita: R$ ${crop.revenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`, 10, false, '#16a34a')
+        yPosition += 5
+      })
+      
+      yPosition += 10
+      
+      // Detalhamento mensal
+      addText('DETALHAMENTO MENSAL', 14, true)
+      checkNewPage()
+      
+      // Cabeçalho da tabela
+      addText('Mês\t\tReceitas\t\tDespesas\t\tLucro', 10, true)
+      addText('─'.repeat(60), 10)
+      
+      reportData.monthlyBreakdown.forEach((month) => {
+        const line = `${month.month}\t\tR$ ${month.revenue.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}\t\tR$ ${month.expenses.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}\t\tR$ ${month.profit.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}`
+        addText(line, 10)
+        checkNewPage()
+      })
+      
+      // Rodapé
+      yPosition = pageHeight - 20
+      pdf.setFontSize(8)
+      pdf.setTextColor(128, 128, 128)
+      pdf.text('Gerado pelo AgroFlow - Sistema de Gestão Rural', margin, yPosition)
+      
+      // Salvar PDF
       pdf.save(`relatorio-agroflow-${reportData.period.replace(/\s+/g, '-').toLowerCase()}.pdf`)
+      
     } catch (error) {
       console.error('Erro ao gerar PDF:', error)
+      alert('Erro ao gerar PDF. Tente novamente.')
     } finally {
       setIsGenerating(false)
     }
@@ -327,7 +389,7 @@ export function ReportGenerator() {
                         cx="50%"
                         cy="50%"
                         labelLine={false}
-                        label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                        label={({ name, percent }: any) => `${name} ${(percent * 100).toFixed(0)}%`}
                         outerRadius={80}
                         fill="#8884d8"
                         dataKey="area"
