@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { AuthProvider, useAuth } from '@/components/auth/auth-provider'
+import { DataProvider } from '@/contexts/data-context'
 import { LoginForm } from '@/components/auth/login-form'
 import { Navigation } from '@/components/layout/navigation'
 import { DashboardMetrics } from '@/components/dashboard/metrics-card'
@@ -97,7 +98,9 @@ function MainApp() {
 export default function Home() {
   return (
     <AuthProvider>
-      <MainApp />
+      <DataProvider>
+        <MainApp />
+      </DataProvider>
     </AuthProvider>
   )
 }

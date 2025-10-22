@@ -8,6 +8,7 @@ import {
   DollarSign, 
   MapPin, 
   BarChart3, 
+  History,
   Settings,
   LogOut,
   Menu,
@@ -33,6 +34,7 @@ export function Navigation({ activeTab, onTabChange }: NavigationProps) {
     { id: 'transactions', label: 'Caixa', icon: DollarSign },
     { id: 'properties', label: 'Propriedades', icon: MapPin },
     { id: 'reports', label: 'Relatórios', icon: BarChart3 },
+    { id: 'history', label: 'Histórico', icon: History },
     { id: 'settings', label: 'Configurações', icon: Settings },
   ]
 
@@ -57,6 +59,11 @@ export function Navigation({ activeTab, onTabChange }: NavigationProps) {
         <div className="flex flex-col h-full">
           {/* Logo */}
           <div className="flex items-center justify-center h-16 px-4 border-b border-gray-200">
+            <img 
+              src="/logo2.png" 
+              alt="AgroFlow Logo" 
+              className="h-8 w-8 mr-3"
+            />
             <h1 className="text-xl font-bold text-primary">AgroFlow</h1>
           </div>
 

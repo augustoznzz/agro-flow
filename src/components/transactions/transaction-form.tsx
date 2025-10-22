@@ -6,106 +6,10 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Plus, Minus } from 'lucide-react'
 import { FinancialCharts } from '@/components/dashboard/financial-charts'
-
-interface Transaction {
-  id: string
-  description: string
-  amount: number
-  type: 'income' | 'expense'
-  category: string
-  date: string
-  notes?: string
-  status?: 'pending' | 'completed' | 'cancelled'
-  project?: string
-  client?: string
-  isRecurring?: boolean
-  recurrenceType?: 'monthly' | 'yearly' | 'weekly'
-  attachments?: string[]
-}
+import { useData, Transaction } from '@/contexts/data-context'
 
 export function TransactionForm() {
-  const [transactions, setTransactions] = useState<Transaction[]>([
-    {
-      id: '1',
-      description: 'Venda de Soja',
-      amount: 15000,
-      type: 'income',
-      category: 'Vendas',
-      date: '2024-01-15'
-    },
-    {
-      id: '2',
-      description: 'Compra de Fertilizantes',
-      amount: 3200,
-      type: 'expense',
-      category: 'Insumos',
-      date: '2024-01-14'
-    },
-    {
-      id: '3',
-      description: 'Venda de Milho',
-      amount: 8500,
-      type: 'income',
-      category: 'Vendas',
-      date: '2024-01-20'
-    },
-    {
-      id: '4',
-      description: 'Mão de Obra',
-      amount: 1800,
-      type: 'expense',
-      category: 'Mão de Obra',
-      date: '2024-01-18'
-    },
-    {
-      id: '5',
-      description: 'Venda de Algodão',
-      amount: 12000,
-      type: 'income',
-      category: 'Vendas',
-      date: '2024-02-05'
-    },
-    {
-      id: '6',
-      description: 'Sementes',
-      amount: 2500,
-      type: 'expense',
-      category: 'Insumos',
-      date: '2024-02-03'
-    },
-    {
-      id: '7',
-      description: 'Combustível',
-      amount: 1200,
-      type: 'expense',
-      category: 'Combustível',
-      date: '2024-02-08'
-    },
-    {
-      id: '8',
-      description: 'Venda de Feijão',
-      amount: 6800,
-      type: 'income',
-      category: 'Vendas',
-      date: '2024-02-15'
-    },
-    {
-      id: '9',
-      description: 'Defensivos',
-      amount: 4200,
-      type: 'expense',
-      category: 'Insumos',
-      date: '2024-02-12'
-    },
-    {
-      id: '10',
-      description: 'Venda de Trigo',
-      amount: 9500,
-      type: 'income',
-      category: 'Vendas',
-      date: '2024-03-02'
-    }
-  ])
+  const { transactions, addTransaction } = useData()
 
   const [showForm, setShowForm] = useState(false)
   const [newTransaction, setNewTransaction] = useState({
@@ -124,8 +28,7 @@ export function TransactionForm() {
 
   const handleAddTransaction = () => {
     if (newTransaction.description && newTransaction.amount) {
-      const transaction: Transaction = {
-        id: Date.now().toString(),
+      addTransaction({
         description: newTransaction.description,
         amount: Number(newTransaction.amount),
         type: newTransaction.type,
@@ -137,8 +40,7 @@ export function TransactionForm() {
         client: newTransaction.client,
         isRecurring: newTransaction.isRecurring,
         recurrenceType: newTransaction.recurrenceType
-      }
-      setTransactions([...transactions, transaction])
+      })
       setNewTransaction({
         description: '',
         amount: '',

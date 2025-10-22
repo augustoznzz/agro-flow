@@ -5,38 +5,10 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Plus, Calendar, DollarSign } from 'lucide-react'
-
-interface CropCycle {
-  id: string
-  cropType: string
-  area: number
-  plantingDate: string
-  estimatedCost: number
-  estimatedRevenue: number
-  status: 'planning' | 'planted' | 'harvested'
-}
+import { useData, CropCycle } from '@/contexts/data-context'
 
 export function CropPlanning() {
-  const [crops, setCrops] = useState<CropCycle[]>([
-    {
-      id: '1',
-      cropType: 'Soja',
-      area: 50,
-      plantingDate: '2024-02-15',
-      estimatedCost: 25000,
-      estimatedRevenue: 45000,
-      status: 'planning'
-    },
-    {
-      id: '2',
-      cropType: 'Milho',
-      area: 30,
-      plantingDate: '2024-03-01',
-      estimatedCost: 15000,
-      estimatedRevenue: 30000,
-      status: 'planning'
-    }
-  ])
+  const { crops, addCrop } = useData()
 
   const [showForm, setShowForm] = useState(false)
   const [newCrop, setNewCrop] = useState({
@@ -49,16 +21,14 @@ export function CropPlanning() {
 
   const handleAddCrop = () => {
     if (newCrop.cropType && newCrop.area && newCrop.plantingDate) {
-      const crop: CropCycle = {
-        id: Date.now().toString(),
+      addCrop({
         cropType: newCrop.cropType,
         area: Number(newCrop.area),
         plantingDate: newCrop.plantingDate,
         estimatedCost: Number(newCrop.estimatedCost),
         estimatedRevenue: Number(newCrop.estimatedRevenue),
         status: 'planning'
-      }
-      setCrops([...crops, crop])
+      })
       setNewCrop({
         cropType: '',
         area: '',

@@ -133,19 +133,29 @@ export function FinancialCharts({ transactions }: FinancialChartsProps) {
                         {/* Barra de Receitas */}
                         <div className="flex flex-col items-center group/income">
                           <div 
-                            className="w-8 bg-gradient-to-t from-emerald-600 via-emerald-500 to-emerald-400 rounded-t-lg shadow-lg transition-all duration-500 hover:shadow-xl hover:scale-110 cursor-pointer relative overflow-hidden"
+                            className="w-8 bg-gradient-to-t from-emerald-600 via-emerald-500 to-emerald-400 rounded-t-lg shadow-lg transition-all duration-500 hover:shadow-xl hover:scale-110 cursor-pointer relative overflow-visible"
                             style={{ 
                               height: `${incomeHeight}%`,
                               minHeight: data.income > 0 ? '8px' : '0px'
                             }}
-                            title={`Receitas: R$ ${data.income.toLocaleString('pt-BR')}`}
                           >
                             {/* Efeito de brilho */}
                             <div className="absolute inset-0 bg-gradient-to-t from-transparent via-white/20 to-transparent"></div>
-                            {/* Valor no topo da barra */}
+                            
+                            {/* Tooltip de Receitas */}
                             {data.income > 0 && (
-                              <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 text-xs font-bold text-emerald-700 opacity-0 group-hover/income:opacity-100 transition-opacity duration-300 whitespace-nowrap">
-                                R$ {data.income.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}
+                              <div className="absolute -top-16 left-1/2 transform -translate-x-1/2 opacity-0 group-hover/income:opacity-100 transition-all duration-300 ease-out z-50">
+                                <div className="bg-emerald-600 text-white text-xs font-semibold px-3 py-2 rounded-lg shadow-lg border border-emerald-500 whitespace-nowrap">
+                                  <div className="flex items-center gap-1">
+                                    <TrendingUp className="h-3 w-3" />
+                                    Receitas
+                                  </div>
+                                  <div className="text-center font-bold text-sm">
+                                    R$ {data.income.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}
+                                  </div>
+                                </div>
+                                {/* Seta do tooltip */}
+                                <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-emerald-600"></div>
                               </div>
                             )}
                           </div>
@@ -154,19 +164,29 @@ export function FinancialCharts({ transactions }: FinancialChartsProps) {
                         {/* Barra de Despesas */}
                         <div className="flex flex-col items-center group/expense">
                           <div 
-                            className="w-8 bg-gradient-to-t from-rose-600 via-rose-500 to-rose-400 rounded-t-lg shadow-lg transition-all duration-500 hover:shadow-xl hover:scale-110 cursor-pointer relative overflow-hidden"
+                            className="w-8 bg-gradient-to-t from-rose-600 via-rose-500 to-rose-400 rounded-t-lg shadow-lg transition-all duration-500 hover:shadow-xl hover:scale-110 cursor-pointer relative overflow-visible"
                             style={{ 
                               height: `${expenseHeight}%`,
                               minHeight: data.expense > 0 ? '8px' : '0px'
                             }}
-                            title={`Despesas: R$ ${data.expense.toLocaleString('pt-BR')}`}
                           >
                             {/* Efeito de brilho */}
                             <div className="absolute inset-0 bg-gradient-to-t from-transparent via-white/20 to-transparent"></div>
-                            {/* Valor no topo da barra */}
+                            
+                            {/* Tooltip de Despesas */}
                             {data.expense > 0 && (
-                              <div className="absolute -top-6 left-1/2 transform -translate-x-1/2 text-xs font-bold text-rose-700 opacity-0 group-hover/expense:opacity-100 transition-opacity duration-300 whitespace-nowrap">
-                                R$ {data.expense.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}
+                              <div className="absolute -top-16 left-1/2 transform -translate-x-1/2 opacity-0 group-hover/expense:opacity-100 transition-all duration-300 ease-out z-50">
+                                <div className="bg-rose-600 text-white text-xs font-semibold px-3 py-2 rounded-lg shadow-lg border border-rose-500 whitespace-nowrap">
+                                  <div className="flex items-center gap-1">
+                                    <TrendingDown className="h-3 w-3" />
+                                    Despesas
+                                  </div>
+                                  <div className="text-center font-bold text-sm">
+                                    R$ {data.expense.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}
+                                  </div>
+                                </div>
+                                {/* Seta do tooltip */}
+                                <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-rose-600"></div>
                               </div>
                             )}
                           </div>
@@ -176,7 +196,7 @@ export function FinancialCharts({ transactions }: FinancialChartsProps) {
                       {/* Barra de Saldo (linha vertical) */}
                       <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 group/balance">
                         <div 
-                          className={`w-1 rounded-full shadow-md transition-all duration-500 hover:shadow-lg hover:scale-125 cursor-pointer ${
+                          className={`w-1 rounded-full shadow-md transition-all duration-500 hover:shadow-lg hover:scale-125 cursor-pointer relative overflow-visible ${
                             data.balance >= 0 
                               ? 'bg-gradient-to-t from-blue-600 to-blue-400' 
                               : 'bg-gradient-to-t from-orange-600 to-orange-400'
@@ -185,19 +205,35 @@ export function FinancialCharts({ transactions }: FinancialChartsProps) {
                             height: `${Math.min(balanceHeight, 100)}%`,
                             minHeight: Math.abs(data.balance) > 0 ? '4px' : '0px'
                           }}
-                          title={`Saldo: R$ ${data.balance.toLocaleString('pt-BR')}`}
                         >
                           {/* Indicador de saldo */}
                           <div className={`absolute -top-2 left-1/2 transform -translate-x-1/2 w-3 h-3 rounded-full border-2 border-white shadow-sm ${
                             data.balance >= 0 ? 'bg-blue-500' : 'bg-orange-500'
                           }`}></div>
                         </div>
-                        {/* Valor do saldo */}
-                        <div className="absolute -bottom-8 left-1/2 transform -translate-x-1/2 text-xs font-bold opacity-0 group-hover/balance:opacity-100 transition-opacity duration-300 whitespace-nowrap">
-                          <span className={`${data.balance >= 0 ? 'text-blue-600' : 'text-orange-600'}`}>
-                            R$ {data.balance.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}
-                          </span>
-                        </div>
+                        
+                        {/* Tooltip de Saldo */}
+                        {Math.abs(data.balance) > 0 && (
+                          <div className="absolute -top-20 left-1/2 transform -translate-x-1/2 opacity-0 group-hover/balance:opacity-100 transition-all duration-300 ease-out z-50">
+                            <div className={`text-white text-xs font-semibold px-3 py-2 rounded-lg shadow-lg border whitespace-nowrap ${
+                              data.balance >= 0 
+                                ? 'bg-blue-600 border-blue-500' 
+                                : 'bg-orange-600 border-orange-500'
+                            }`}>
+                              <div className="flex items-center gap-1">
+                                <DollarSign className="h-3 w-3" />
+                                Saldo
+                              </div>
+                              <div className="text-center font-bold text-sm">
+                                R$ {data.balance.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}
+                              </div>
+                            </div>
+                            {/* Seta do tooltip */}
+                            <div className={`absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent ${
+                              data.balance >= 0 ? 'border-t-blue-600' : 'border-t-orange-600'
+                            }`}></div>
+                          </div>
+                        )}
                       </div>
                       
                       {/* Label do mês */}

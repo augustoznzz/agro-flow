@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Calendar, Download, FileText } from 'lucide-react'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from 'recharts'
 import jsPDF from 'jspdf'
+import { useData, Transaction, CropCycle } from '@/contexts/data-context'
 
 interface ReportData {
   period: string
@@ -42,12 +43,83 @@ interface ReportData {
 const COLORS = ['#10b981', '#3b82f6', '#f59e0b', '#ef4444', '#8b5cf6']
 
 export function ReportGenerator() {
+  const { transactions, crops } = useData()
   const [selectedPeriod, setSelectedPeriod] = useState('monthly')
   const [customStartDate, setCustomStartDate] = useState('')
   const [customEndDate, setCustomEndDate] = useState('')
   const [isGenerating, setIsGenerating] = useState(false)
 
-  // Dados mockados para demonstração
+  // Função para filtrar transações por período
+  const filterTransactionsByPeriod = (transactions: Transaction[], startDate: Date, endDate: Date) => {
+    return transactions.filter(transaction => {
+      const transactionDate = new Date(transaction.date)
+      return transactionDate >= startDate && transactionDate <= endDate
+    })
+  }
+
+  // Função para agrupar transações por mês
+  const groupTransactionsByMonth = (transactions: Transaction[]) => {
+    const grouped: { [key: string]: { revenue: number; expenses: number } } = {}
+    
+    transactions.forEach(transaction => {
+      const date = new Date(transaction.date)
+      const monthKey = date.toLocaleDateString('pt-BR', { month: 'short', year: 'numeric' })
+      
+      if (!grouped[monthKey]) {
+        grouped[monthKey] = { revenue: 0, expenses: 0 }
+      }
+      
+      if (transaction.type === 'income') {
+        grouped[monthKey].revenue += transaction.amount
+      } else {
+        grouped[monthKey].expenses += transaction.amount
+      }
+    })
+    
+    return Object.entries(grouped).map(([month, data]) => ({
+      month,
+      revenue: data.revenue,
+      expenses: data.expenses,
+      profit: data.revenue - data.expenses
+    }))
+  }
+
+  // Função para calcular dados das safras baseado nas transações
+  const calculateCropData = (transactions: Transaction[], crops: CropCycle[]) => {
+    const cropRevenue: { [key: string]: { area: number; revenue: number; production: number } } = {}
+    
+    // Inicializar com dados das safras
+    crops.forEach(crop => {
+      cropRevenue[crop.cropType] = {
+        area: crop.area,
+        revenue: 0,
+        production: 0
+      }
+    })
+    
+    // Calcular receitas reais das transações
+    transactions.forEach(transaction => {
+      if (transaction.type === 'income' && transaction.category === 'Vendas') {
+        // Tentar identificar a safra pela descrição
+        const cropType = crops.find(crop => 
+          transaction.description.toLowerCase().includes(crop.cropType.toLowerCase())
+        )?.cropType
+        
+        if (cropType && cropRevenue[cropType]) {
+          cropRevenue[cropType].revenue += transaction.amount
+        }
+      }
+    })
+    
+    return Object.entries(cropRevenue).map(([name, data]) => ({
+      name,
+      area: data.area,
+      production: Math.round(data.revenue / 10), // Estimativa baseada na receita
+      revenue: data.revenue
+    }))
+  }
+
+  // Gerar dados do relatório baseado nos dados reais
   const generateReportData = (): ReportData => {
     const now = new Date()
     let startDate: Date
@@ -83,41 +155,47 @@ export function ReportGenerator() {
         periodLabel = `${now.toLocaleDateString('pt-BR', { month: 'long', year: 'numeric' })}`
     }
 
-    // Gerar dados mockados baseados no período
-    const months = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24 * 30))
+    // Filtrar transações pelo período
+    const filteredTransactions = filterTransactionsByPeriod(transactions, startDate, endDate)
+    
+    // Calcular métricas
+    const totalRevenue = filteredTransactions
+      .filter(t => t.type === 'income')
+      .reduce((sum, t) => sum + t.amount, 0)
+    
+    const totalExpenses = filteredTransactions
+      .filter(t => t.type === 'expense')
+      .reduce((sum, t) => sum + t.amount, 0)
+    
+    const netProfit = totalRevenue - totalExpenses
+    
+    // Agrupar por mês para gráfico de fluxo de caixa
+    const monthlyBreakdown = groupTransactionsByMonth(filteredTransactions)
+    
+    // Dados das safras
+    const cropData = calculateCropData(filteredTransactions, crops)
+    
+    // Dados para gráfico de fluxo de caixa (últimos 6 meses)
+    const cashFlowData = monthlyBreakdown.slice(-6).map(month => ({
+      period: month.month.split(' ')[0], // Apenas o mês
+      revenue: month.revenue,
+      expenses: month.expenses
+    }))
     
     return {
       period: periodLabel,
       startDate: startDate.toISOString().split('T')[0],
       endDate: endDate.toISOString().split('T')[0],
       metrics: {
-        totalRevenue: 125000 + Math.random() * 50000,
-        totalExpenses: 75000 + Math.random() * 25000,
-        netProfit: 0, // Será calculado
-        activeCrops: 3 + Math.floor(Math.random() * 3),
-        propertiesCount: 2 + Math.floor(Math.random() * 2)
+        totalRevenue,
+        totalExpenses,
+        netProfit,
+        activeCrops: crops.filter(c => c.status === 'planted' || c.status === 'harvested').length,
+        propertiesCount: 1 // Assumindo 1 propriedade por enquanto
       },
-      cashFlowData: Array.from({ length: Math.max(months, 6) }, (_, i) => ({
-        period: new Date(startDate.getTime() + i * 30 * 24 * 60 * 60 * 1000).toLocaleDateString('pt-BR', { month: 'short' }),
-        revenue: 15000 + Math.random() * 10000,
-        expenses: 8000 + Math.random() * 5000
-      })),
-      cropData: [
-        { name: 'Soja', area: 150, production: 4500, revenue: 45000 },
-        { name: 'Milho', area: 80, production: 3200, revenue: 25000 },
-        { name: 'Café', area: 30, production: 900, revenue: 18000 },
-        { name: 'Algodão', area: 60, production: 1800, revenue: 22000 }
-      ],
-      monthlyBreakdown: Array.from({ length: Math.max(months, 6) }, (_, i) => {
-        const revenue = 15000 + Math.random() * 10000
-        const expenses = 8000 + Math.random() * 5000
-        return {
-          month: new Date(startDate.getTime() + i * 30 * 24 * 60 * 60 * 1000).toLocaleDateString('pt-BR', { month: 'short' }),
-          revenue,
-          expenses,
-          profit: revenue - expenses
-        }
-      })
+      cashFlowData,
+      cropData,
+      monthlyBreakdown
     }
   }
 
