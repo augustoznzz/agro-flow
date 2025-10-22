@@ -1,22 +1,7 @@
 'use client'
 
 import { createContext, useContext, useState, ReactNode } from 'react'
-
-export interface Transaction {
-  id: string
-  description: string
-  amount: number
-  type: 'income' | 'expense'
-  category: string
-  date: string
-  notes?: string
-  status?: 'pending' | 'completed' | 'cancelled'
-  project?: string
-  client?: string
-  isRecurring?: boolean
-  recurrenceType?: 'monthly' | 'yearly' | 'weekly'
-  attachments?: string[]
-}
+import { Transaction } from '@/types'
 
 export interface CropCycle {
   id: string
@@ -48,83 +33,103 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [transactions, setTransactions] = useState<Transaction[]>([
     {
       id: '1',
+      user_id: 'user-1',
       description: 'Venda de Soja',
       amount: 15000,
       type: 'income',
       category: 'Vendas',
-      date: '2024-01-15'
+      date: '2024-01-15',
+      created_at: '2024-01-15T10:00:00Z'
     },
     {
       id: '2',
+      user_id: 'user-1',
       description: 'Compra de Fertilizantes',
       amount: 3200,
       type: 'expense',
       category: 'Insumos',
-      date: '2024-01-14'
+      date: '2024-01-14',
+      created_at: '2024-01-14T10:00:00Z'
     },
     {
       id: '3',
+      user_id: 'user-1',
       description: 'Venda de Milho',
       amount: 8500,
       type: 'income',
       category: 'Vendas',
-      date: '2024-01-20'
+      date: '2024-01-20',
+      created_at: '2024-01-20T10:00:00Z'
     },
     {
       id: '4',
+      user_id: 'user-1',
       description: 'Mão de Obra',
       amount: 1800,
       type: 'expense',
       category: 'Mão de Obra',
-      date: '2024-01-18'
+      date: '2024-01-18',
+      created_at: '2024-01-18T10:00:00Z'
     },
     {
       id: '5',
+      user_id: 'user-1',
       description: 'Venda de Algodão',
       amount: 12000,
       type: 'income',
       category: 'Vendas',
-      date: '2024-02-05'
+      date: '2024-02-05',
+      created_at: '2024-02-05T10:00:00Z'
     },
     {
       id: '6',
+      user_id: 'user-1',
       description: 'Sementes',
       amount: 2500,
       type: 'expense',
       category: 'Insumos',
-      date: '2024-02-03'
+      date: '2024-02-03',
+      created_at: '2024-02-03T10:00:00Z'
     },
     {
       id: '7',
+      user_id: 'user-1',
       description: 'Combustível',
       amount: 1200,
       type: 'expense',
       category: 'Combustível',
-      date: '2024-02-08'
+      date: '2024-02-08',
+      created_at: '2024-02-08T10:00:00Z'
     },
     {
       id: '8',
+      user_id: 'user-1',
       description: 'Venda de Feijão',
       amount: 6800,
       type: 'income',
       category: 'Vendas',
-      date: '2024-02-15'
+      date: '2024-02-15',
+      created_at: '2024-02-15T10:00:00Z'
     },
     {
       id: '9',
+      user_id: 'user-1',
       description: 'Defensivos',
       amount: 4200,
       type: 'expense',
       category: 'Insumos',
-      date: '2024-02-12'
+      date: '2024-02-12',
+      created_at: '2024-02-12T10:00:00Z'
     },
     {
       id: '10',
+      user_id: 'user-1',
       description: 'Venda de Trigo',
       amount: 9500,
       type: 'income',
       category: 'Vendas',
-      date: '2024-03-02'
+      date: '2024-03-02',
+      created_at: '2024-03-02T10:00:00Z'
     }
   ])
 
