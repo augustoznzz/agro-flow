@@ -13,6 +13,7 @@ import { TransactionForm } from '@/components/transactions/transaction-form'
 import { PropertyManagement } from '@/components/properties/property-management'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ReportGenerator } from '@/components/reports/report-generator'
+import { TransactionHistory } from '@/components/transactions/transaction-history'
 
 function MainApp() {
   const { user, loading } = useAuth()
