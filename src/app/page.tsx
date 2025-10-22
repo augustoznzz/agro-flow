@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import { AuthProvider, useAuth } from '@/components/auth/auth-provider'
-import { DataProvider } from '@/contexts/data-context'
+import { DataProvider, useData } from '@/contexts/data-context'
 import { LoginForm } from '@/components/auth/login-form'
 import { Navigation } from '@/components/layout/navigation'
 import { DashboardMetrics } from '@/components/dashboard/metrics-card'
@@ -17,6 +17,7 @@ import { TransactionHistory } from '@/components/transactions/transaction-histor
 
 function MainApp() {
   const { user, loading } = useAuth()
+  const { transactions, updateTransaction, deleteTransaction } = useData()
   const [activeTab, setActiveTab] = useState('dashboard')
 
   if (loading) {
@@ -62,6 +63,16 @@ function MainApp() {
           <div className="space-y-6">
             <h1 className="text-3xl font-bold">Relatórios</h1>
             <ReportGenerator />
+          </div>
+        )
+      case 'history':
+        return (
+          <div className="space-y-6">
+            <TransactionHistory 
+              transactions={transactions}
+              onUpdateTransaction={updateTransaction}
+              onDeleteTransaction={deleteTransaction}
+            />
           </div>
         )
       case 'settings':
