@@ -11,6 +11,7 @@ import { CropPlanning } from '@/components/crops/crop-planning'
 import { TransactionForm } from '@/components/transactions/transaction-form'
 import { PropertyManagement } from '@/components/properties/property-management'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { ReportGenerator } from '@/components/reports/report-generator'
 
 function MainApp() {
   const { user, loading } = useAuth()
@@ -20,8 +21,8 @@ function MainApp() {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-green-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Carregando...</p>
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary mx-auto"></div>
+          <p className="mt-4 text-muted-foreground">Carregando...</p>
         </div>
       </div>
     )
@@ -29,7 +30,7 @@ function MainApp() {
 
   if (!user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <LoginForm />
       </div>
     )
@@ -58,30 +59,7 @@ function MainApp() {
         return (
           <div className="space-y-6">
             <h1 className="text-3xl font-bold">Relatórios</h1>
-            <div className="grid gap-4 md:grid-cols-2">
-              <Card>
-                <CardHeader>
-                  <CardTitle>Relatório Anual</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-gray-600">Relatório consolidado do ano atual</p>
-                  <button className="mt-4 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
-                    Gerar Relatório
-                  </button>
-                </CardContent>
-              </Card>
-              <Card>
-                <CardHeader>
-                  <CardTitle>Comparativo de Safras</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-gray-600">Comparativo entre diferentes safras</p>
-                  <button className="mt-4 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
-                    Gerar Relatório
-                  </button>
-                </CardContent>
-              </Card>
-            </div>
+            <ReportGenerator />
           </div>
         )
       case 'settings':
@@ -93,8 +71,8 @@ function MainApp() {
                 <CardTitle>Perfil do Usuário</CardTitle>
               </CardHeader>
               <CardContent>
-                <p className="text-gray-600">Email: {user.email}</p>
-                <button className="mt-4 px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">
+                <p className="text-muted-foreground">Email: {user.email}</p>
+                <button className="mt-4 px-4 py-2 bg-primary text-primary-foreground rounded hover:bg-primary/90">
                   Editar Perfil
                 </button>
               </CardContent>
@@ -107,7 +85,7 @@ function MainApp() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       <Navigation activeTab={activeTab} onTabChange={setActiveTab} />
       <main className="md:ml-64 p-6 pt-16 md:pt-6">
         {renderContent()}

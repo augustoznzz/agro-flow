@@ -57,7 +57,7 @@ export function Navigation({ activeTab, onTabChange }: NavigationProps) {
         <div className="flex flex-col h-full">
           {/* Logo */}
           <div className="flex items-center justify-center h-16 px-4 border-b border-gray-200">
-            <h1 className="text-xl font-bold text-green-600">AgroFlow</h1>
+            <h1 className="text-xl font-bold text-primary">AgroFlow</h1>
           </div>
 
           {/* Menu Items */}

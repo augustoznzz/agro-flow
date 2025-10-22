@@ -15,11 +15,11 @@ export function MetricsCard({ title, value, change, icon, trend }: MetricsCardPr
   const getTrendColor = () => {
     switch (trend) {
       case 'up':
-        return 'text-green-600'
+        return 'text-primary'
       case 'down':
-        return 'text-red-600'
+        return 'text-destructive'
       default:
-        return 'text-gray-600'
+        return 'text-muted-foreground'
     }
   }
 
