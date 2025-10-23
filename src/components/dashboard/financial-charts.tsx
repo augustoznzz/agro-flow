@@ -2,6 +2,8 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { TrendingUp, TrendingDown, DollarSign, Activity, PieChart } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { ChartSkeleton } from '@/components/ui/chart-skeleton'
 
 interface Transaction {
   id: string
@@ -24,6 +26,35 @@ interface FinancialChartsProps {
 }
 
 export function FinancialCharts({ transactions }: FinancialChartsProps) {
+  const [isClient, setIsClient] = useState(false)
+
+  useEffect(() => {
+    setIsClient(true)
+  }, [])
+
+  if (!isClient) {
+    return (
+      <div className="space-y-6">
+        <Card className="overflow-hidden shadow-lg">
+          <CardHeader className="bg-gradient-to-r from-slate-50 via-blue-50 to-indigo-50 border-b border-gray-100">
+            <CardTitle className="flex items-center gap-3 text-slate-800">
+              <div className="p-3 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl shadow-md">
+                <Activity className="h-6 w-6 text-white" />
+              </div>
+              <div>
+                <h3 className="text-xl font-bold">Análise Financeira Mensal</h3>
+                <p className="text-sm text-slate-600 font-normal">Receitas, Despesas e Saldo por Período</p>
+              </div>
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="p-8">
+            <ChartSkeleton />
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
+
   // Processar dados para gráficos
   const getMonthlyData = () => {
     if (!transactions || !Array.isArray(transactions) || transactions.length === 0) return [] as Array<{ month: string; income: number; expense: number; balance: number; year: number; monthIndex: number }>

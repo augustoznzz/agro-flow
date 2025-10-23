@@ -3,12 +3,22 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import { useData } from '@/contexts/data-context'
-import { useMemo } from 'react'
+import { useMemo, useState, useEffect } from 'react'
+import { ChartSkeletonCard } from '@/components/ui/chart-skeleton'
 
 const monthNames = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
 
 export function CashFlowChart() {
   const { transactions } = useData()
+  const [isClient, setIsClient] = useState(false)
+
+  useEffect(() => {
+    setIsClient(true)
+  }, [])
+
+  if (!isClient) {
+    return <ChartSkeletonCard />
+  }
 
   const chartData = useMemo(() => {
     // Get current date and calculate 12 months back
