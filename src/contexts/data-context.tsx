@@ -49,7 +49,8 @@ interface DataContextType {
 const DataContext = createContext<DataContextType | undefined>(undefined)
 
 export function DataProvider({ children }: { children: ReactNode }) {
-  const [transactions, setTransactions] = useState<Transaction[]>([
+  // Dados de exemplo - usados apenas na primeira vez
+  const defaultTransactions: Transaction[] = [
     {
       id: '1',
       user_id: 'user-1',
@@ -150,9 +151,9 @@ export function DataProvider({ children }: { children: ReactNode }) {
       date: '2024-03-02',
       created_at: '2024-03-02T10:00:00Z'
     }
-  ])
+  ]
 
-  const [crops, setCrops] = useState<CropCycle[]>([
+  const defaultCrops: CropCycle[] = [
     {
       id: '1',
       cropType: 'Soja',
@@ -189,9 +190,9 @@ export function DataProvider({ children }: { children: ReactNode }) {
       estimatedRevenue: 25000,
       status: 'planning'
     }
-  ])
+  ]
 
-  const [properties, setProperties] = useState<PropertyItem[]>([
+  const defaultProperties: PropertyItem[] = [
     {
       id: '1',
       name: 'Fazenda São José',
@@ -206,22 +207,47 @@ export function DataProvider({ children }: { children: ReactNode }) {
       location: 'Chapadão do Céu - GO',
       description: 'Pequena propriedade para horticultura'
     }
-  ])
+  ]
+
+  // Inicializar com arrays vazios - os dados virão do IndexedDB
+  const [transactions, setTransactions] = useState<Transaction[]>([])
+  const [crops, setCrops] = useState<CropCycle[]>([])
+  const [properties, setProperties] = useState<PropertyItem[]>([])
+  const [isInitialized, setIsInitialized] = useState(false)
 
   // Hydrate from IndexedDB on mount
   useEffect(() => {
     let cancelled = false
     ;(async () => {
       try {
+        // Verifica se já foi inicializado antes (flag no localStorage)
+        const hasInitialized = localStorage.getItem('agroflow-initialized')
+        
         const [storedTransactions, storedCrops, storedProperties] = await Promise.all([
           idb.getAll<Transaction>('transactions'),
           idb.getAll<CropCycle>('crops'),
           idb.getAll<PropertyItem>('properties'),
         ])
+        
         if (!cancelled) {
-          if (storedTransactions && storedTransactions.length) setTransactions(storedTransactions)
-          if (storedCrops && storedCrops.length) setCrops(storedCrops)
-          if (storedProperties && storedProperties.length) setProperties(storedProperties)
+          // Se nunca foi inicializado e não tem dados, usa os dados default
+          if (!hasInitialized && storedTransactions.length === 0 && storedCrops.length === 0 && storedProperties.length === 0) {
+            setTransactions(defaultTransactions)
+            setCrops(defaultCrops)
+            setProperties(defaultProperties)
+            // Salva os dados default no IndexedDB
+            await idb.bulkPut('transactions', defaultTransactions)
+            await idb.bulkPut('crops', defaultCrops)
+            await idb.bulkPut('properties', defaultProperties)
+            localStorage.setItem('agroflow-initialized', 'true')
+          } else {
+            // Sempre usa os dados do IndexedDB (mesmo que esteja vazio)
+            setTransactions(storedTransactions)
+            setCrops(storedCrops)
+            setProperties(storedProperties)
+            localStorage.setItem('agroflow-initialized', 'true')
+          }
+          setIsInitialized(true)
         }
       } catch {}
     })()
@@ -229,32 +255,36 @@ export function DataProvider({ children }: { children: ReactNode }) {
   }, [])
 
   // Persist changes to IndexedDB (clear + bulkPut to keep stores in sync)
+  // Só persiste após a inicialização para não sobrescrever durante o carregamento
   useEffect(() => {
+    if (!isInitialized) return
     ;(async () => {
       try {
         await idb.clear('transactions')
         await idb.bulkPut('transactions', transactions)
       } catch {}
     })()
-  }, [transactions])
+  }, [transactions, isInitialized])
 
   useEffect(() => {
+    if (!isInitialized) return
     ;(async () => {
       try {
         await idb.clear('crops')
         await idb.bulkPut('crops', crops)
       } catch {}
     })()
-  }, [crops])
+  }, [crops, isInitialized])
 
   useEffect(() => {
+    if (!isInitialized) return
     ;(async () => {
       try {
         await idb.clear('properties')
         await idb.bulkPut('properties', properties)
       } catch {}
     })()
-  }, [properties])
+  }, [properties, isInitialized])
 
   // Outbox helpers
   const enqueue = async (op: Omit<OutboxOperation, 'id' | 'timestamp'>) => {
