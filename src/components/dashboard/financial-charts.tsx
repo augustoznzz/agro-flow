@@ -184,7 +184,7 @@ export function FinancialCharts({ transactions }: FinancialChartsProps) {
                   const balanceHeight = Math.abs(data.balance / yMax) * 100
                   
                   return (
-                    <div key={data.month} className="flex flex-col items-center group relative">
+                    <div key={data.month} className="flex flex-col items-center group relative h-full">
                       {/* Container das barras */}
                       <div className="flex items-end space-x-1 h-full">
                         {/* Barra de Receitas */}
@@ -251,7 +251,7 @@ export function FinancialCharts({ transactions }: FinancialChartsProps) {
                       </div>
                       
                       {/* Barra de Saldo (linha vertical) */}
-                      <div className="absolute -bottom-1 left-1/2 transform -translate-x-1/2 group/balance">
+                      <div className="absolute inset-y-0 left-1/2 transform -translate-x-1/2 group/balance h-full flex items-end">
                         <div 
                           className={`w-1 rounded-full shadow-md transition-all duration-500 hover:shadow-lg hover:scale-125 cursor-pointer relative overflow-visible ${
                             data.balance >= 0 
