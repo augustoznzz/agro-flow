@@ -67,9 +67,10 @@ function FinancialChartsContent({ transactions }: FinancialChartsProps) {
       }
       const acc = monthMap.get(key)!
       const amt = Number(t.amount)
-      if (isFinite(amt) && amt > 0) {
-        if (t.type === 'income') acc.income += amt
-        else if (t.type === 'expense') acc.expense += amt
+      if (isFinite(amt)) {
+        const normalized = Math.abs(amt)
+        if (t.type === 'income') acc.income += normalized
+        else if (t.type === 'expense') acc.expense += normalized
       }
 
       if (year < minYear || (year === minYear && monthIndex < minMonthIndex)) {
@@ -133,15 +134,16 @@ function FinancialChartsContent({ transactions }: FinancialChartsProps) {
         if (!transaction || !transaction.category || transaction.amount === undefined) return
         
         const amt = Number(transaction.amount)
-        if (!isFinite(amt) || amt <= 0) return
+        if (!isFinite(amt)) return
+        const normalized = Math.abs(amt)
         
         if (!categoryData[transaction.category]) {
           categoryData[transaction.category] = { income: 0, expense: 0 }
         }
         if (transaction.type === 'income') {
-          categoryData[transaction.category].income += amt
+          categoryData[transaction.category].income += normalized
         } else if (transaction.type === 'expense') {
-          categoryData[transaction.category].expense += amt
+          categoryData[transaction.category].expense += normalized
         }
       })
     }

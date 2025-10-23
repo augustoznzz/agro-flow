@@ -54,14 +54,14 @@ function CashFlowChartContent() {
       transactions.forEach(transaction => {
         if (transaction && transaction.date && transaction.amount !== undefined) {
           const { year: transactionYear, month: transactionMonth } = parseDate(transaction.date)
-          const amount = Number(transaction.amount)
+          const amount = Math.abs(Number(transaction.amount))
 
           // Find the corresponding month in our array
           const monthData = last12Months.find(
             m => m.year === transactionYear && m.monthIndex === transactionMonth
           )
 
-          if (monthData && isFinite(amount) && amount > 0) {
+          if (monthData && isFinite(amount)) {
             if (transaction.type === 'income') {
               monthData.receitas += amount
             } else if (transaction.type === 'expense') {
