@@ -72,11 +72,11 @@ export function Modal({
 
     document.addEventListener('keydown', handleKeyDown)
 
-    // Focus handling
-    const toFocus = initialFocusRef?.current || containerRef.current?.querySelector<HTMLElement>(
-      'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-    )
-    toFocus?.focus()
+    // Focus handling - only if explicitly provided via initialFocusRef
+    // Don't auto-focus first input to avoid interfering with form field focus
+    if (initialFocusRef?.current) {
+      initialFocusRef.current.focus()
+    }
 
     // Prevent background scroll
     const originalOverflow = document.body.style.overflow
