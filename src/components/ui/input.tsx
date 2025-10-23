@@ -1,6 +1,5 @@
 import * as React from "react"
 import { cn } from "@/lib/utils"
-import { Calendar } from "lucide-react"
 
 export interface InputProps
   extends React.InputHTMLAttributes<HTMLInputElement> {}
@@ -22,16 +21,18 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>((
   }
 
   if (type === "number") {
-    const rawValue = (props as any).value
-    const rawString =
-      typeof rawValue === "number" ? String(rawValue) : typeof rawValue === "string" ? rawValue : ""
-
-    const normalizeParts = (value: string) => {
-      const sign = value.trim().startsWith("-") ? "-" : ""
-      const digitsAndSeps = value.replace(/[^0-9.,-]/g, "")
+    const handleNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const input = e.currentTarget
+      const cursorPos = input.selectionStart || 0
+      const text = input.value
+      
+      // Normalize input: remove formatting, keep only digits and decimal separators
+      const sign = text.trim().startsWith("-") ? "-" : ""
+      const digitsAndSeps = text.replace(/[^0-9.,-]/g, "")
       const lastDot = digitsAndSeps.lastIndexOf(".")
       const lastComma = digitsAndSeps.lastIndexOf(",")
       const sepIndex = Math.max(lastDot, lastComma)
+      
       let intPart = digitsAndSeps
       let decPart = ""
       if (sepIndex > -1) {
@@ -40,25 +41,74 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>((
       }
       intPart = intPart.replace(/[^0-9]/g, "")
       decPart = decPart.replace(/[^0-9]/g, "")
-      return { sign, intPart, decPart }
+      
+      // Format display value with thousands separators
+      const addThousandsDots = (int: string) => {
+        if (!int) return ""
+        return int.replace(/\B(?=(\d{3})+(?!\d))/g, ".")
+      }
+      
+      const formattedInt = addThousandsDots(intPart)
+      const displayValue = sign + formattedInt + (decPart ? "," + decPart : "")
+      
+      // Raw value for state (no formatting)
+      const rawValue = sign + intPart + (decPart ? "." + decPart : "")
+      
+      // Calculate new cursor position
+      const oldDigitsBeforeCursor = text.slice(0, cursorPos).replace(/[^0-9]/g, "").length
+      let counted = 0
+      let newCursorPos = 0
+      for (let i = 0; i < displayValue.length; i++) {
+        if (/\d/.test(displayValue[i])) {
+          counted++
+          if (counted === oldDigitsBeforeCursor) {
+            newCursorPos = i + 1
+            break
+          }
+        }
+      }
+      
+      // Update display
+      input.value = displayValue
+      
+      // Set raw value for onChange callback
+      const syntheticEvent = {
+        ...e,
+        target: { ...e.target, value: rawValue },
+        currentTarget: { ...e.currentTarget, value: rawValue }
+      } as React.ChangeEvent<HTMLInputElement>
+      
+      // Restore cursor after React update
+      setTimeout(() => {
+        input.setSelectionRange(newCursorPos, newCursorPos)
+      }, 0)
+      
+      onChange?.(syntheticEvent)
     }
 
-    const addThousandsDots = (intPart: string) => {
-      if (!intPart) return ""
-      return intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ".")
-    }
-
-    const { sign, intPart, decPart } = normalizeParts(rawString)
-    const formattedInt = addThousandsDots(intPart)
-    const displayValue = sign + formattedInt + (decPart ? "," + decPart : "")
-
-    const handleNumberChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      const text = e.currentTarget.value
-      const { sign, intPart, decPart } = normalizeParts(text)
-      const raw = sign + intPart + (decPart ? "." + decPart : "")
-      e.currentTarget.value = raw
-      ;(e.target as any).value = raw
-      onChange?.(e)
+    // Format initial value for display
+    const rawValue = (props as any).value
+    const rawString = typeof rawValue === "number" ? String(rawValue) : typeof rawValue === "string" ? rawValue : ""
+    
+    const formatDisplay = (val: string) => {
+      if (!val) return ""
+      const sign = val.trim().startsWith("-") ? "-" : ""
+      const digitsAndSeps = val.replace(/[^0-9.,-]/g, "")
+      const lastDot = digitsAndSeps.lastIndexOf(".")
+      const lastComma = digitsAndSeps.lastIndexOf(",")
+      const sepIndex = Math.max(lastDot, lastComma)
+      
+      let intPart = digitsAndSeps
+      let decPart = ""
+      if (sepIndex > -1) {
+        intPart = digitsAndSeps.slice(0, sepIndex)
+        decPart = digitsAndSeps.slice(sepIndex + 1)
+      }
+      intPart = intPart.replace(/[^0-9]/g, "")
+      decPart = decPart.replace(/[^0-9]/g, "")
+      
+      const formattedInt = intPart ? intPart.replace(/\B(?=(\d{3})+(?!\d))/g, ".") : ""
+      return sign + formattedInt + (decPart ? "," + decPart : "")
     }
 
     return (
@@ -71,7 +121,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>((
         )}
         ref={setRefs}
         {...props}
-        value={displayValue}
+        value={formatDisplay(rawString)}
         onChange={handleNumberChange}
       />
     )
@@ -85,14 +135,15 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>((
       const onlyDigits = oldValue.replace(/\D/g, "").slice(0, 8)
       
       let next = ""
+      // Format: DD-MM-AAAA
       if (onlyDigits.length > 0) {
-        next = onlyDigits.slice(0, 4)
+        next = onlyDigits.slice(0, 2) // DD
+      }
+      if (onlyDigits.length > 2) {
+        next += "-" + onlyDigits.slice(2, 4) // MM
       }
       if (onlyDigits.length > 4) {
-        next += "-" + onlyDigits.slice(4, 6)
-      }
-      if (onlyDigits.length > 6) {
-        next += "-" + onlyDigits.slice(6, 8)
+        next += "-" + onlyDigits.slice(4, 8) // AAAA
       }
       
       // Calculate new cursor position accounting for auto-inserted hyphens
@@ -132,30 +183,22 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>((
     }
     
     return (
-      <div className="relative">
-        <input
-          type="text"
-          inputMode="numeric"
-          pattern="\\d{4}-\\d{2}-\\d{2}"
-          maxLength={10}
-          autoComplete="off"
-          className={cn(
-            "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 pr-10 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 af-date",
-            className
-          )}
-          ref={setRefs}
-          placeholder="AAAA-MM-DD"
-          onChange={handleMaskedDateChange}
-          onKeyDown={handleMaskedDateKeyDown}
-          {...props}
-        />
-        <span
-          aria-hidden="true"
-          className="pointer-events-none absolute inset-y-0 right-2 flex items-center justify-center p-1 text-muted-foreground"
-        >
-          <Calendar className="h-5 w-5" />
-        </span>
-      </div>
+      <input
+        type="text"
+        inputMode="numeric"
+        pattern="\\d{2}-\\d{2}-\\d{4}"
+        maxLength={10}
+        autoComplete="off"
+        className={cn(
+          "flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 af-date",
+          className
+        )}
+        ref={setRefs}
+        placeholder="DD-MM-AAAA"
+        onChange={handleMaskedDateChange}
+        onKeyDown={handleMaskedDateKeyDown}
+        {...props}
+      />
     )
   }
 
