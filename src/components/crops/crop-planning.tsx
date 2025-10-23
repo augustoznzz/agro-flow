@@ -226,7 +226,7 @@ export function CropPlanning() {
                   <span className={`font-medium ${
                     crop.estimatedRevenue - crop.estimatedCost > 0 ? 'text-green-600' : 'text-red-600'
                   }`}>
-                    R$ {(crop.estimatedRevenue - crop.estimatedCost).toLocaleString('pt-BR')}
+                    R$ {(crop.estimatedRevenue - crop.estimatedCost).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </span>
                 </div>
               </div>
