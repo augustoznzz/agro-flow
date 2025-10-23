@@ -26,6 +26,7 @@ export const metadata: Metadata = {
     maximumScale: 5,
     userScalable: true,
   },
+  manifest: "/manifest.json",
 };
 
 export default function RootLayout({
@@ -39,6 +40,20 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         {children}
+        {/* Service worker registration for PWA */}
+        {/* eslint-disable-next-line @next/next/no-sync-scripts */}
+        <script dangerouslySetInnerHTML={{
+          __html: `
+          (function(){
+            if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+              window.addEventListener('load', function() {
+                navigator.serviceWorker.register('/sw.js').catch(function(e){
+                  console.warn('SW registration failed', e);
+                });
+              });
+            }
+          })();
+        `}} />
       </body>
     </html>
   );

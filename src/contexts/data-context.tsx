@@ -1,6 +1,6 @@
 'use client'
 
-import { createContext, useContext, useState, ReactNode } from 'react'
+import { createContext, useContext, useState, ReactNode, useEffect } from 'react'
 import { Transaction } from '@/types'
 
 export interface CropCycle {
@@ -203,6 +203,48 @@ export function DataProvider({ children }: { children: ReactNode }) {
       description: 'Pequena propriedade para horticultura'
     }
   ])
+
+  // Persist and hydrate data from localStorage
+  useEffect(() => {
+    try {
+      const storedTransactions = localStorage.getItem('agroflow:transactions')
+      if (storedTransactions) {
+        setTransactions(JSON.parse(storedTransactions))
+      }
+    } catch {}
+
+    try {
+      const storedCrops = localStorage.getItem('agroflow:crops')
+      if (storedCrops) {
+        setCrops(JSON.parse(storedCrops))
+      }
+    } catch {}
+
+    try {
+      const storedProperties = localStorage.getItem('agroflow:properties')
+      if (storedProperties) {
+        setProperties(JSON.parse(storedProperties))
+      }
+    } catch {}
+  }, [])
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('agroflow:transactions', JSON.stringify(transactions))
+    } catch {}
+  }, [transactions])
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('agroflow:crops', JSON.stringify(crops))
+    } catch {}
+  }, [crops])
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('agroflow:properties', JSON.stringify(properties))
+    } catch {}
+  }, [properties])
 
   const addTransaction = (transaction: Omit<Transaction, 'id'>) => {
     const newTransaction: Transaction = {

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { AuthProvider, useAuth } from '@/components/auth/auth-provider'
 import { DataProvider, useData } from '@/contexts/data-context'
 import { LoginForm } from '@/components/auth/login-form'
@@ -19,6 +19,20 @@ function MainApp() {
   const { user, loading } = useAuth()
   const { transactions, updateTransaction, deleteTransaction, deleteAllTransactions } = useData()
   const [activeTab, setActiveTab] = useState('dashboard')
+
+  // Hydrate active tab from localStorage and persist on change
+  useEffect(() => {
+    try {
+      const savedTab = localStorage.getItem('agroflow:activeTab')
+      if (savedTab) setActiveTab(savedTab)
+    } catch {}
+  }, [])
+
+  useEffect(() => {
+    try {
+      localStorage.setItem('agroflow:activeTab', activeTab)
+    } catch {}
+  }, [activeTab])
 
   if (loading) {
     return (
