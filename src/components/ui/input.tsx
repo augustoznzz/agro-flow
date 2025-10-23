@@ -33,26 +33,12 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>((
           ref={setRefs}
           {...props}
         />
-        <button
-          type="button"
-          aria-label="Abrir seletor de data"
-          className="absolute inset-y-0 right-2 flex items-center justify-center p-1 rounded-md text-muted-foreground hover:text-foreground focus:outline-none"
-          onClick={() => {
-            const el = localRef.current
-            if (!el) return
-            // Prefer showPicker when available for a consistent UX
-            // Fallback to click() for broader support
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const anyEl = el as any
-            if (typeof anyEl.showPicker === "function") {
-              anyEl.showPicker()
-            } else {
-              el.click()
-            }
-          }}
+        <span
+          aria-hidden="true"
+          className="pointer-events-none absolute inset-y-0 right-2 flex items-center justify-center p-1 text-muted-foreground"
         >
           <Calendar className="h-5 w-5" />
-        </button>
+        </span>
       </div>
     )
   }

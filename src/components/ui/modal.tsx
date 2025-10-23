@@ -31,6 +31,12 @@ export function Modal({
   initialFocusRef
 }: ModalProps) {
   const containerRef = useRef<HTMLDivElement>(null)
+  const onCloseRef = useRef(onClose)
+
+  // Keep latest onClose without retriggering the focus effect
+  useEffect(() => {
+    onCloseRef.current = onClose
+  }, [onClose])
 
   // Close on ESC and trap focus within the modal
   useEffect(() => {
@@ -41,7 +47,7 @@ export function Modal({
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape') {
         e.stopPropagation()
-        onClose()
+        onCloseRef.current()
       }
       if (e.key === 'Tab') {
         const focusable = containerRef.current?.querySelectorAll<HTMLElement>(
@@ -81,7 +87,7 @@ export function Modal({
       document.body.style.overflow = originalOverflow
       previouslyFocused?.focus?.()
     }
-  }, [open, onClose, initialFocusRef])
+  }, [open])
 
   if (!open) return null
 

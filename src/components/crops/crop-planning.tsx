@@ -4,12 +4,12 @@ import { useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Plus, Calendar, DollarSign } from 'lucide-react'
+import { Plus, Calendar, DollarSign, Pencil, Trash2 } from 'lucide-react'
 import { Modal } from '@/components/ui/modal'
 import { useData, CropCycle } from '@/contexts/data-context'
 
 export function CropPlanning() {
-  const { crops, addCrop } = useData()
+  const { crops, addCrop, updateCrop, deleteCrop } = useData()
 
   const [showForm, setShowForm] = useState(false)
   const [newCrop, setNewCrop] = useState({
@@ -19,6 +19,19 @@ export function CropPlanning() {
     estimatedCost: '',
     estimatedRevenue: ''
   })
+
+  const [showEditForm, setShowEditForm] = useState(false)
+  const [editingCropId, setEditingCropId] = useState<string | null>(null)
+  const [editCrop, setEditCrop] = useState({
+    cropType: '',
+    area: '',
+    plantingDate: '',
+    estimatedCost: '',
+    estimatedRevenue: ''
+  })
+
+  const [showDelete, setShowDelete] = useState(false)
+  const [deletingCrop, setDeletingCrop] = useState<CropCycle | null>(null)
 
   const handleAddCrop = () => {
     if (newCrop.cropType && newCrop.area && newCrop.plantingDate) {
@@ -39,6 +52,45 @@ export function CropPlanning() {
       })
       setShowForm(false)
     }
+  }
+
+  const openEdit = (crop: CropCycle) => {
+    setEditingCropId(crop.id)
+    setEditCrop({
+      cropType: crop.cropType,
+      area: String(crop.area ?? ''),
+      plantingDate: crop.plantingDate ?? '',
+      estimatedCost: String(crop.estimatedCost ?? ''),
+      estimatedRevenue: String(crop.estimatedRevenue ?? ''),
+    })
+    setShowEditForm(true)
+  }
+
+  const handleUpdateCrop = () => {
+    if (!editingCropId) return
+    if (editCrop.cropType && editCrop.area && editCrop.plantingDate) {
+      updateCrop(editingCropId, {
+        cropType: editCrop.cropType,
+        area: Number(editCrop.area),
+        plantingDate: editCrop.plantingDate,
+        estimatedCost: Number(editCrop.estimatedCost),
+        estimatedRevenue: Number(editCrop.estimatedRevenue),
+      })
+      setShowEditForm(false)
+      setEditingCropId(null)
+    }
+  }
+
+  const confirmDelete = (crop: CropCycle) => {
+    setDeletingCrop(crop)
+    setShowDelete(true)
+  }
+
+  const handleDeleteCrop = () => {
+    if (!deletingCrop) return
+    deleteCrop(deletingCrop.id)
+    setShowDelete(false)
+    setDeletingCrop(null)
   }
 
   const getStatusColor = (status: string) => {
@@ -139,9 +191,17 @@ export function CropPlanning() {
             <CardHeader>
               <div className="flex justify-between items-start">
                 <CardTitle className="text-lg">{crop.cropType}</CardTitle>
-                <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(crop.status)}`}>
-                  {getStatusText(crop.status)}
-                </span>
+                <div className="flex items-center gap-2">
+                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${getStatusColor(crop.status)}`}>
+                    {getStatusText(crop.status)}
+                  </span>
+                  <Button variant="ghost" size="icon" aria-label="Editar safra" onClick={() => openEdit(crop)}>
+                    <Pencil className="h-4 w-4" />
+                  </Button>
+                  <Button variant="destructive" size="icon" aria-label="Excluir safra" onClick={() => confirmDelete(crop)}>
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
             </CardHeader>
             <CardContent className="space-y-3">
@@ -170,10 +230,87 @@ export function CropPlanning() {
                   </span>
                 </div>
               </div>
+              <div className="flex justify-end gap-2 pt-3">
+                <Button variant="outline" onClick={() => openEdit(crop)}>
+                  Editar
+                </Button>
+                <Button variant="destructive" onClick={() => confirmDelete(crop)}>
+                  Excluir
+                </Button>
+              </div>
             </CardContent>
           </Card>
         ))}
       </div>
+
+      <Modal open={showEditForm} onClose={() => setShowEditForm(false)} title="Editar Safra" size="lg">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="text-sm font-medium">Tipo de Cultura</label>
+            <Input
+              placeholder="Ex: Soja, Milho, Feijão"
+              value={editCrop.cropType}
+              onChange={(e) => setEditCrop({ ...editCrop, cropType: e.target.value })}
+            />
+          </div>
+          <div>
+            <label className="text-sm font-medium">Área (hectares)</label>
+            <Input
+              type="number"
+              placeholder="50"
+              value={editCrop.area}
+              onChange={(e) => setEditCrop({ ...editCrop, area: e.target.value })}
+            />
+          </div>
+          <div>
+            <label className="text-sm font-medium">Data de Plantio</label>
+            <Input
+              type="date"
+              value={editCrop.plantingDate}
+              onChange={(e) => setEditCrop({ ...editCrop, plantingDate: e.target.value })}
+            />
+          </div>
+          <div>
+            <label className="text-sm font-medium">Custo Estimado (R$)</label>
+            <Input
+              type="number"
+              placeholder="25000"
+              value={editCrop.estimatedCost}
+              onChange={(e) => setEditCrop({ ...editCrop, estimatedCost: e.target.value })}
+            />
+          </div>
+          <div>
+            <label className="text-sm font-medium">Receita Estimada (R$)</label>
+            <Input
+              type="number"
+              placeholder="45000"
+              value={editCrop.estimatedRevenue}
+              onChange={(e) => setEditCrop({ ...editCrop, estimatedRevenue: e.target.value })}
+            />
+          </div>
+          <div className="flex items-end gap-2 md:col-span-2 justify-end">
+            <Button variant="outline" onClick={() => setShowEditForm(false)}>
+              Cancelar
+            </Button>
+            <Button onClick={handleUpdateCrop}>
+              Salvar Alterações
+            </Button>
+          </div>
+        </div>
+      </Modal>
+
+      <Modal open={showDelete} onClose={() => setShowDelete(false)} title="Excluir Safra" size="md">
+        <div className="space-y-4">
+          <p className="text-sm">
+            Tem certeza que deseja excluir a safra
+            {deletingCrop ? ` "${deletingCrop.cropType}"` : ''}? Esta ação não pode ser desfeita.
+          </p>
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => setShowDelete(false)}>Cancelar</Button>
+            <Button variant="destructive" onClick={handleDeleteCrop}>Excluir</Button>
+          </div>
+        </div>
+      </Modal>
     </div>
   )
 }
