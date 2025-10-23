@@ -13,18 +13,33 @@ export interface CropCycle {
   status: 'planning' | 'planted' | 'harvested'
 }
 
+export interface PropertyItem {
+  id: string
+  name: string
+  area: number
+  location: string
+  description?: string
+}
+
 interface DataContextType {
   transactions: Transaction[]
   setTransactions: (transactions: Transaction[]) => void
   addTransaction: (transaction: Omit<Transaction, 'id'>) => void
   updateTransaction: (id: string, transaction: Partial<Transaction>) => void
   deleteTransaction: (id: string) => void
+  deleteAllTransactions: () => void
   
   crops: CropCycle[]
   setCrops: (crops: CropCycle[]) => void
   addCrop: (crop: Omit<CropCycle, 'id'>) => void
   updateCrop: (id: string, crop: Partial<CropCycle>) => void
   deleteCrop: (id: string) => void
+
+  properties: PropertyItem[]
+  setProperties: (properties: PropertyItem[]) => void
+  addProperty: (property: Omit<PropertyItem, 'id'>) => void
+  updateProperty: (id: string, property: Partial<PropertyItem>) => void
+  deleteProperty: (id: string) => void
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined)
@@ -172,6 +187,23 @@ export function DataProvider({ children }: { children: ReactNode }) {
     }
   ])
 
+  const [properties, setProperties] = useState<PropertyItem[]>([
+    {
+      id: '1',
+      name: 'Fazenda São José',
+      area: 150,
+      location: 'Rio Verde - GO',
+      description: 'Propriedade principal para cultivo de soja e milho'
+    },
+    {
+      id: '2',
+      name: 'Sítio Boa Vista',
+      area: 45,
+      location: 'Chapadão do Céu - GO',
+      description: 'Pequena propriedade para horticultura'
+    }
+  ])
+
   const addTransaction = (transaction: Omit<Transaction, 'id'>) => {
     const newTransaction: Transaction = {
       ...transaction,
@@ -188,6 +220,10 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   const deleteTransaction = (id: string) => {
     setTransactions(prev => prev.filter(t => t.id !== id))
+  }
+
+  const deleteAllTransactions = () => {
+    setTransactions([])
   }
 
   const addCrop = (crop: Omit<CropCycle, 'id'>) => {
@@ -208,6 +244,19 @@ export function DataProvider({ children }: { children: ReactNode }) {
     setCrops(prev => prev.filter(c => c.id !== id))
   }
 
+  const addProperty = (property: Omit<PropertyItem, 'id'>) => {
+    const newProperty: PropertyItem = { ...property, id: Date.now().toString() }
+    setProperties(prev => [...prev, newProperty])
+  }
+
+  const updateProperty = (id: string, property: Partial<PropertyItem>) => {
+    setProperties(prev => prev.map(p => p.id === id ? { ...p, ...property } : p))
+  }
+
+  const deleteProperty = (id: string) => {
+    setProperties(prev => prev.filter(p => p.id !== id))
+  }
+
   return (
     <DataContext.Provider value={{
       transactions,
@@ -215,11 +264,17 @@ export function DataProvider({ children }: { children: ReactNode }) {
       addTransaction,
       updateTransaction,
       deleteTransaction,
+      deleteAllTransactions,
       crops,
       setCrops,
       addCrop,
       updateCrop,
-      deleteCrop
+      deleteCrop,
+      properties,
+      setProperties,
+      addProperty,
+      updateProperty,
+      deleteProperty
     }}>
       {children}
     </DataContext.Provider>

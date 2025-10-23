@@ -76,7 +76,7 @@ export function TransactionForm() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
         <h2 className="text-2xl font-bold">Controle de Caixa</h2>
         <Button onClick={() => setShowForm(!showForm)}>
           <Plus className="h-4 w-4 mr-2" />
@@ -184,7 +184,7 @@ export function TransactionForm() {
                     type="date"
                     value={newTransaction.date}
                     onChange={(e) => setNewTransaction({...newTransaction, date: e.target.value})}
-                    className="w-48"
+                    className="w-full sm:w-48"
                   />
                 </div>
                 <div>
@@ -257,7 +257,7 @@ export function TransactionForm() {
 
               {/* Botão de Ação */}
               <div className="flex justify-end">
-                <Button onClick={handleAddTransaction} className="px-8">
+                <Button onClick={handleAddTransaction} className="px-8 w-full sm:w-auto">
                   Adicionar Transação
                 </Button>
               </div>

@@ -2,34 +2,91 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
+import { useData } from '@/contexts/data-context'
+import { useMemo } from 'react'
 
-const data = [
-  { month: 'Jan', receitas: 4000, despesas: 2400 },
-  { month: 'Fev', receitas: 3000, despesas: 1398 },
-  { month: 'Mar', receitas: 2000, despesas: 9800 },
-  { month: 'Abr', receitas: 2780, despesas: 3908 },
-  { month: 'Mai', receitas: 1890, despesas: 4800 },
-  { month: 'Jun', receitas: 2390, despesas: 3800 },
-  { month: 'Jul', receitas: 3490, despesas: 4300 },
-]
+const monthNames = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
 
 export function CashFlowChart() {
+  const { transactions } = useData()
+
+  const chartData = useMemo(() => {
+    // Get current date and calculate 12 months back
+    const now = new Date()
+    const last12Months: { month: string; receitas: number; despesas: number; year: number; monthIndex: number }[] = []
+
+    // Generate last 12 months
+    for (let i = 11; i >= 0; i--) {
+      const date = new Date(now.getFullYear(), now.getMonth() - i, 1)
+      const monthIndex = date.getMonth()
+      const year = date.getFullYear()
+      
+      last12Months.push({
+        month: monthNames[monthIndex],
+        receitas: 0,
+        despesas: 0,
+        year: year,
+        monthIndex: monthIndex
+      })
+    }
+
+    // Aggregate transactions by month
+    transactions.forEach(transaction => {
+      const transactionDate = new Date(transaction.date)
+      const transactionYear = transactionDate.getFullYear()
+      const transactionMonth = transactionDate.getMonth()
+
+      // Find the corresponding month in our array
+      const monthData = last12Months.find(
+        m => m.year === transactionYear && m.monthIndex === transactionMonth
+      )
+
+      if (monthData) {
+        if (transaction.type === 'income') {
+          monthData.receitas += transaction.amount
+        } else {
+          monthData.despesas += transaction.amount
+        }
+      }
+    })
+
+    // Return only month name and values for the chart
+    return last12Months.map(({ month, receitas, despesas }) => ({
+      month,
+      receitas,
+      despesas
+    }))
+  }, [transactions])
+
   return (
-    <Card className="col-span-4">
+    <Card className="w-full">
       <CardHeader>
-        <CardTitle>Fluxo de Caixa - Últimos 7 Meses</CardTitle>
+        <CardTitle className="text-base sm:text-lg">Fluxo de Caixa - Últimos 12 Meses</CardTitle>
       </CardHeader>
-      <CardContent>
-        <ResponsiveContainer width="100%" height={300}>
-          <LineChart data={data}>
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis dataKey="month" />
-            <YAxis />
+      <CardContent className="p-2 sm:p-6">
+        <div className="w-full" style={{ minHeight: 240 }}>
+          <ResponsiveContainer width="100%" height={300}>
+          <LineChart data={chartData}>
+            <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
+            <XAxis 
+              dataKey="month" 
+              tick={{ fontSize: 12 }}
+              stroke="#6b7280"
+            />
+            <YAxis 
+              tick={{ fontSize: 12 }}
+              stroke="#6b7280"
+            />
             <Tooltip 
               formatter={(value, name) => [
                 `R$ ${Number(value).toLocaleString('pt-BR')}`,
                 name === 'receitas' ? 'Receitas' : 'Despesas'
               ]}
+              contentStyle={{ 
+                borderRadius: '8px',
+                border: '1px solid #e5e7eb',
+                fontSize: '14px'
+              }}
             />
             <Line 
               type="monotone" 
@@ -37,6 +94,8 @@ export function CashFlowChart() {
               stroke="#10b981" 
               strokeWidth={2}
               name="receitas"
+              dot={{ r: 4 }}
+              activeDot={{ r: 6 }}
             />
             <Line 
               type="monotone" 
@@ -44,9 +103,12 @@ export function CashFlowChart() {
               stroke="#ef4444" 
               strokeWidth={2}
               name="despesas"
+              dot={{ r: 4 }}
+              activeDot={{ r: 6 }}
             />
           </LineChart>
-        </ResponsiveContainer>
+          </ResponsiveContainer>
+        </div>
       </CardContent>
     </Card>
   )

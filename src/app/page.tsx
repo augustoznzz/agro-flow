@@ -17,7 +17,7 @@ import { TransactionHistory } from '@/components/transactions/transaction-histor
 
 function MainApp() {
   const { user, loading } = useAuth()
-  const { transactions, updateTransaction, deleteTransaction } = useData()
+  const { transactions, updateTransaction, deleteTransaction, deleteAllTransactions } = useData()
   const [activeTab, setActiveTab] = useState('dashboard')
 
   if (loading) {
@@ -44,11 +44,15 @@ function MainApp() {
       case 'dashboard':
         return (
           <div className="space-y-6">
-            <h1 className="text-3xl font-bold">Dashboard</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold">Dashboard</h1>
             <DashboardMetrics />
-            <div className="grid gap-4 md:grid-cols-7">
-              <CashFlowChart />
-              <RecentTransactions />
+            <div className="grid gap-4 lg:grid-cols-3">
+              <div className="lg:col-span-2">
+                <CashFlowChart />
+              </div>
+              <div className="lg:col-span-1">
+                <RecentTransactions />
+              </div>
             </div>
           </div>
         )
@@ -72,6 +76,7 @@ function MainApp() {
               transactions={transactions}
               onUpdateTransaction={updateTransaction}
               onDeleteTransaction={deleteTransaction}
+              onDeleteAll={deleteAllTransactions}
             />
           </div>
         )
@@ -100,8 +105,10 @@ function MainApp() {
   return (
     <div className="min-h-screen bg-background">
       <Navigation activeTab={activeTab} onTabChange={setActiveTab} />
-      <main className="md:ml-64 p-6 pt-16 md:pt-6">
-        {renderContent()}
+      <main className="w-full min-h-screen bg-background overflow-x-hidden pt-20 pb-12 sm:pb-16 lg:pt-8 lg:pl-64">
+        <div className="w-full px-4 sm:px-6 lg:px-8">
+          {renderContent()}
+        </div>
       </main>
     </div>
   )

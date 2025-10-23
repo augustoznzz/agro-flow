@@ -2,27 +2,27 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ArrowUpRight, ArrowDownLeft } from 'lucide-react'
-
-const transactions = [
-  { id: 1, description: 'Venda de Soja - Safra 2024', amount: 15000, type: 'income', date: '2024-01-15' },
-  { id: 2, description: 'Compra de Fertilizantes', amount: 3200, type: 'expense', date: '2024-01-14' },
-  { id: 3, description: 'Venda de Milho', amount: 8500, type: 'income', date: '2024-01-13' },
-  { id: 4, description: 'Mão de obra - Plantio', amount: 1800, type: 'expense', date: '2024-01-12' },
-  { id: 5, description: 'Subsídio Governamental', amount: 5000, type: 'income', date: '2024-01-10' },
-]
+import { useData } from '@/contexts/data-context'
+import { useMemo } from 'react'
 
 export function RecentTransactions() {
+  const { transactions } = useData()
+  const recent = useMemo(() => {
+    return [...transactions]
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+      .slice(0, 5)
+  }, [transactions])
   return (
-    <Card className="col-span-3">
+    <Card className="w-full h-full">
       <CardHeader>
-        <CardTitle>Transações Recentes</CardTitle>
+        <CardTitle className="text-base sm:text-lg">Transações Recentes</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
-          {transactions.map((transaction) => (
-            <div key={transaction.id} className="flex items-center justify-between">
-              <div className="flex items-center space-x-4">
-                <div className={`p-2 rounded-full ${
+          {recent.map((transaction) => (
+            <div key={transaction.id} className="flex items-center justify-between gap-2 flex-wrap sm:flex-nowrap">
+              <div className="flex items-center space-x-2 sm:space-x-3 min-w-0 flex-1">
+                <div className={`p-2 rounded-full flex-shrink-0 ${
                   transaction.type === 'income' 
                     ? 'bg-green-100 text-green-600' 
                     : 'bg-red-100 text-red-600'
@@ -33,14 +33,14 @@ export function RecentTransactions() {
                     <ArrowDownLeft className="h-4 w-4" />
                   )}
                 </div>
-                <div>
-                  <p className="text-sm font-medium">{transaction.description}</p>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-medium truncate">{transaction.description}</p>
                   <p className="text-xs text-gray-500">
                     {new Date(transaction.date).toLocaleDateString('pt-BR')}
                   </p>
                 </div>
               </div>
-              <div className={`text-sm font-medium ${
+              <div className={`text-sm font-medium whitespace-nowrap flex-shrink-0 ${
                 transaction.type === 'income' ? 'text-green-600' : 'text-red-600'
               }`}>
                 {transaction.type === 'income' ? '+' : '-'}R$ {transaction.amount.toLocaleString('pt-BR')}

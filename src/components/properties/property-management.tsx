@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Plus, MapPin, Edit, Trash2 } from 'lucide-react'
+import { useData } from '@/contexts/data-context'
 
 interface Property {
   id: string
@@ -15,22 +16,7 @@ interface Property {
 }
 
 export function PropertyManagement() {
-  const [properties, setProperties] = useState<Property[]>([
-    {
-      id: '1',
-      name: 'Fazenda São José',
-      area: 150,
-      location: 'Rio Verde - GO',
-      description: 'Propriedade principal para cultivo de soja e milho'
-    },
-    {
-      id: '2',
-      name: 'Sítio Boa Vista',
-      area: 45,
-      location: 'Chapadão do Céu - GO',
-      description: 'Pequena propriedade para horticultura'
-    }
-  ])
+  const { properties, addProperty, updateProperty, deleteProperty } = useData()
 
   const [showForm, setShowForm] = useState(false)
   const [editingProperty, setEditingProperty] = useState<Property | null>(null)
@@ -43,20 +29,13 @@ export function PropertyManagement() {
 
   const handleAddProperty = () => {
     if (newProperty.name && newProperty.area && newProperty.location) {
-      const property: Property = {
-        id: Date.now().toString(),
+      addProperty({
         name: newProperty.name,
         area: Number(newProperty.area),
         location: newProperty.location,
         description: newProperty.description
-      }
-      setProperties([...properties, property])
-      setNewProperty({
-        name: '',
-        area: '',
-        location: '',
-        description: ''
       })
+      setNewProperty({ name: '', area: '', location: '', description: '' })
       setShowForm(false)
     }
   }
@@ -74,17 +53,12 @@ export function PropertyManagement() {
 
   const handleUpdateProperty = () => {
     if (editingProperty && newProperty.name && newProperty.area && newProperty.location) {
-      setProperties(properties.map(p => 
-        p.id === editingProperty.id 
-          ? {
-              ...p,
-              name: newProperty.name,
-              area: Number(newProperty.area),
-              location: newProperty.location,
-              description: newProperty.description
-            }
-          : p
-      ))
+      updateProperty(editingProperty.id, {
+        name: newProperty.name,
+        area: Number(newProperty.area),
+        location: newProperty.location,
+        description: newProperty.description
+      })
       setEditingProperty(null)
       setNewProperty({
         name: '',
@@ -97,7 +71,7 @@ export function PropertyManagement() {
   }
 
   const handleDeleteProperty = (id: string) => {
-    setProperties(properties.filter(p => p.id !== id))
+    deleteProperty(id)
   }
 
   const getTotalArea = () => {
@@ -106,7 +80,7 @@ export function PropertyManagement() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-3">
         <h2 className="text-2xl font-bold">Gestão de Propriedades</h2>
         <Button onClick={() => {
           setEditingProperty(null)

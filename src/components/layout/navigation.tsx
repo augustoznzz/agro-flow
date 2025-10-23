@@ -40,25 +40,37 @@ export function Navigation({ activeTab, onTabChange }: NavigationProps) {
 
   return (
     <>
-      {/* Mobile menu button */}
-      <Button
-        variant="ghost"
-        size="sm"
-        className="md:hidden fixed top-4 left-4 z-50"
-        onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-      >
-        {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
-      </Button>
+      {/* Mobile header - Fixed at top */}
+      <header className="lg:hidden fixed top-0 left-0 right-0 h-16 bg-white border-b border-gray-200 z-50 flex items-center justify-between px-4">
+        <div className="flex items-center gap-3">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
+            className="p-2"
+          >
+            {isMobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+          </Button>
+          <div className="flex items-center">
+            <img 
+              src="/logo2.png" 
+              alt="AgroFlow Logo" 
+              className="h-7 w-7 mr-2"
+            />
+            <h1 className="text-lg font-bold text-primary">AgroFlow</h1>
+          </div>
+        </div>
+      </header>
 
-      {/* Navigation */}
+      {/* Navigation sidebar */}
       <nav className={`
-        fixed inset-y-0 left-0 z-40 w-64 bg-white border-r border-gray-200 transform transition-transform duration-200 ease-in-out
+        fixed inset-y-0 left-0 z-40 w-64 bg-white border-r border-gray-200 shadow-lg transform transition-transform duration-200 ease-in-out
         ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
-        md:translate-x-0
+        lg:translate-x-0 lg:shadow-none lg:z-30 mt-16 lg:mt-0
       `}>
         <div className="flex flex-col h-full">
-          {/* Logo */}
-          <div className="flex items-center justify-center h-16 px-4 border-b border-gray-200">
+          {/* Logo - Only visible on desktop */}
+          <div className="hidden lg:flex items-center justify-center h-16 px-4 border-b border-gray-200">
             <img 
               src="/logo2.png" 
               alt="AgroFlow Logo" 
@@ -68,7 +80,7 @@ export function Navigation({ activeTab, onTabChange }: NavigationProps) {
           </div>
 
           {/* Menu Items */}
-          <div className="flex-1 px-4 py-6 space-y-2">
+          <div className="flex-1 px-4 py-6 space-y-2 overflow-y-auto">
             {menuItems.map((item) => {
               const Icon = item.icon
               return (
@@ -105,7 +117,7 @@ export function Navigation({ activeTab, onTabChange }: NavigationProps) {
       {/* Overlay for mobile */}
       {isMobileMenuOpen && (
         <div
-          className="fixed inset-0 z-30 bg-black bg-opacity-50 md:hidden"
+          className="fixed inset-0 z-30 bg-black bg-opacity-50 lg:hidden mt-16"
           onClick={() => setIsMobileMenuOpen(false)}
         />
       )}

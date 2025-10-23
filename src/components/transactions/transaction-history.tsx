@@ -26,12 +26,14 @@ interface TransactionHistoryProps {
   transactions: Transaction[]
   onUpdateTransaction: (id: string, updatedTransaction: Partial<Transaction>) => void
   onDeleteTransaction: (id: string) => void
+  onDeleteAll: () => void
 }
 
 export function TransactionHistory({ 
   transactions, 
   onUpdateTransaction, 
-  onDeleteTransaction 
+  onDeleteTransaction,
+  onDeleteAll
 }: TransactionHistoryProps) {
   const [searchTerm, setSearchTerm] = useState('')
   const [filterType, setFilterType] = useState<'all' | 'income' | 'expense'>('all')
@@ -47,6 +49,9 @@ export function TransactionHistory({
   const [formErrors, setFormErrors] = useState<{[key: string]: string}>({})
   const [showSuccessMessage, setShowSuccessMessage] = useState(false)
   const [showDeleteMessage, setShowDeleteMessage] = useState(false)
+  const [showDeleteAllModal, setShowDeleteAllModal] = useState(false)
+  const [deleteAllConfirmText, setDeleteAllConfirmText] = useState('')
+  const [showDeleteAllMessage, setShowDeleteAllMessage] = useState(false)
 
   // Get unique categories for filter
   const categories = Array.from(new Set(transactions.map(t => t.category)))
@@ -143,6 +148,16 @@ export function TransactionHistory({
     }
   }
 
+  const handleConfirmDeleteAll = () => {
+    if (deleteAllConfirmText.trim().toLowerCase() === 'deletar tudo') {
+      onDeleteAll()
+      setShowDeleteAllModal(false)
+      setDeleteAllConfirmText('')
+      setShowDeleteAllMessage(true)
+      setTimeout(() => setShowDeleteAllMessage(false), 3000)
+    }
+  }
+
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',
@@ -171,8 +186,25 @@ export function TransactionHistory({
         </div>
       )}
 
-      <div className="flex flex-col sm:flex-row gap-4">
+      {showDeleteAllMessage && (
+        <div className="fixed top-4 right-4 z-50 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-md flex items-center gap-2">
+          <XCircle className="h-4 w-4" />
+          Todas as transações foram excluídas!
+        </div>
+      )}
+
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
         <h1 className="text-3xl font-bold">Histórico de Transações</h1>
+        {transactions.length > 0 && (
+          <Button
+            variant="destructive"
+            onClick={() => setShowDeleteAllModal(true)}
+            className="flex items-center gap-2"
+          >
+            <Trash2 className="h-4 w-4" />
+            Deletar tudo
+          </Button>
+        )}
       </div>
 
       {/* Filters */}
@@ -340,8 +372,8 @@ export function TransactionHistory({
                   </div>
                 ) : (
                   // Transaction Display
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
+                  <div className="flex items-center justify-between gap-4 flex-wrap">
+                    <div className="flex items-center gap-4 min-w-0">
                       <div className={`p-2 rounded-full ${
                         transaction.type === 'income' 
                           ? 'bg-green-100 text-green-600' 
@@ -372,7 +404,7 @@ export function TransactionHistory({
                           {transaction.type === 'income' ? '+' : '-'}{formatCurrency(transaction.amount)}
                         </p>
                       </div>
-                      <div className="flex gap-2">
+                      <div className="flex gap-2 flex-wrap sm:flex-nowrap">
                         <Button
                           variant="outline"
                           size="sm"
@@ -458,6 +490,40 @@ export function TransactionHistory({
             </div>
           </CardContent>
         </Card>
+      )}
+
+      {/* Delete All Modal */}
+      {showDeleteAllModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/50" onClick={() => setShowDeleteAllModal(false)}></div>
+          <div className="relative z-10 w-full max-w-md rounded-lg border bg-background p-6 shadow-lg">
+            <h2 className="text-xl font-semibold mb-2 flex items-center gap-2">
+              <Trash2 className="h-5 w-5 text-red-600" />
+              Deletar todas as transações
+            </h2>
+            <p className="text-sm text-muted-foreground mb-4">
+              Esta ação é irreversível. Para confirmar, digite <span className="font-semibold">deletar tudo</span> abaixo.
+            </p>
+            <Input
+              placeholder="Digite: deletar tudo"
+              value={deleteAllConfirmText}
+              onChange={(e) => setDeleteAllConfirmText(e.target.value)}
+              className="mb-4"
+            />
+            <div className="flex gap-2 justify-end">
+              <Button variant="outline" onClick={() => { setShowDeleteAllModal(false); setDeleteAllConfirmText('') }}>
+                Cancelar
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={handleConfirmDeleteAll}
+                disabled={deleteAllConfirmText.trim().toLowerCase() !== 'deletar tudo'}
+              >
+                Deletar tudo
+              </Button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )
