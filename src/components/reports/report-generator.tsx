@@ -8,7 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Calendar, Download, FileText } from 'lucide-react'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, PieChart, Pie, Cell } from 'recharts'
 import jsPDF from 'jspdf'
-import { useData, Transaction, CropCycle } from '@/contexts/data-context'
+import { useData, CropCycle } from '@/contexts/data-context'
+import type { Transaction } from '@/types'
 
 interface ReportData {
   period: string

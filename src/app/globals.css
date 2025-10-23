@@ -147,26 +147,36 @@ iframe[title*="vercel"] {
   pointer-events: none !important;
 }
 
-/* Alinhar ícone do calendário à direita em todos os inputs de data */
+/* Reservado: os inputs de data são estilizados pelo componente, sem bg extra */
 input[type="date"] {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='%236b7280'%3E%3Cpath d='M7 2a1 1 0 0 0-1 1v1H5a3 3 0 0 0-3 3v12a3 3 0 0 0 3 3h14a3 3 0 0 0 3-3V7a3 3 0 0 0-3-3h-1V3a1 1 0 1 0-2 0v1H8V3a1 1 0 0 0-1-1ZM5 8h14v11a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V8z'/%3E%3C/svg%3E");
-  background-repeat: no-repeat;
-  background-position: right 0.75rem center;
-  padding-right: 2.25rem; /* espaço para o ícone */
+  background-image: none !important;
+}
+input.af-date[type="date"] {
+  -webkit-appearance: none;
+  appearance: none;
+  background-image: none !important;
 }
 
-/* Tornar o indicador nativo transparente mas clicável (Chrome/Edge/Safari) */
+/* Esconder totalmente o ícone nativo quando usamos o nosso botão/ícone */
+input.af-date[type="date"]::-webkit-calendar-picker-indicator {
+  display: none !important;
+}
+/* Firefox */
+input.af-date[type="date"]::-moz-calendar-picker-indicator {
+  display: none !important;
+}
+
+/* Garantir que nenhum input de data exiba o ícone nativo à esquerda */
 input[type="date"]::-webkit-calendar-picker-indicator {
-  background: transparent;
-  color: transparent;
-  opacity: 0; /* invisível, mas mantém a área clicável */
-  width: 1.25rem;
-  height: 1.25rem;
-  cursor: pointer;
+  display: none !important;
 }
-
-/* Remover setas de número se algum navegador exibir no date */
-input[type="date"]::-webkit-inner-spin-button,
-input[type="date"]::-webkit-clear-button {
+input[type="date"]::-moz-calendar-picker-indicator {
+  display: none !important;
+}
+/* Extras que alguns navegadores ainda exibem */
+input.af-date[type="date"]::-webkit-inner-spin-button,
+input.af-date[type="date"]::-webkit-clear-button {
   display: none;
 }
+
+/* Remover setas/clear quando necessário, escopado ao nosso input */

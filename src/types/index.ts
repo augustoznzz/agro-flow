@@ -38,6 +38,13 @@ export interface Transaction {
   amount: number
   date: string
   created_at: string
+  // Optional client-only fields used by UI
+  notes?: string
+  status?: 'pending' | 'completed' | 'cancelled'
+  project?: string
+  client?: string
+  isRecurring?: boolean
+  recurrenceType?: 'monthly' | 'yearly' | 'weekly'
 }
 
 export interface DashboardMetrics {

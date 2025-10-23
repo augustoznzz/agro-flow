@@ -150,17 +150,32 @@ CREATE POLICY "Users can delete own transactions" ON transactions
 
 ## 🚀 Deploy
 
-### Vercel (Recomendado)
-1. Conecte seu repositório ao Vercel
-2. Configure as variáveis de ambiente
-3. Deploy automático a cada push
+### Netlify
+Este projeto está configurado para deploy na Netlify usando o runtime oficial para Next.js.
 
-### Outras Plataformas
-O projeto é compatível com qualquer plataforma que suporte Next.js:
-- Netlify
-- Railway
-- Render
-- DigitalOcean App Platform
+Pré-requisitos:
+- `netlify.toml` com o plugin `@netlify/plugin-nextjs`
+- Node no build image: `>=18.17.0`
+
+Build & Publish (Netlify UI):
+- Build command: `npm run build`
+- Publish directory: `.next`
+
+Variáveis de ambiente (Site settings → Environment variables):
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+
+Passos:
+1. Conecte o repositório na Netlify em "Add new site" → "Import an existing project".
+2. Confirme o comando de build e diretório de publicação acima.
+3. Defina as variáveis de ambiente e inicie o primeiro deploy.
+
+Observações:
+- Deploy Previews funcionam automaticamente em PRs.
+- Funções/roteamento dinâmico são tratados pelo plugin de Next.
+
+### Vercel
+Alternativamente, o projeto também pode ser deployado na Vercel.
 
 ## 📱 PWA
 

@@ -2,6 +2,8 @@
 
 import { createContext, useContext, useState, ReactNode, useEffect } from 'react'
 import { Transaction } from '@/types'
+import { idb, type OutboxOperation } from '@/lib/idb'
+import { supabase } from '@/lib/supabase'
 
 export interface CropCycle {
   id: string
@@ -24,7 +26,7 @@ export interface PropertyItem {
 interface DataContextType {
   transactions: Transaction[]
   setTransactions: (transactions: Transaction[]) => void
-  addTransaction: (transaction: Omit<Transaction, 'id'>) => void
+  addTransaction: (transaction: Omit<Transaction, 'id' | 'user_id' | 'created_at'>) => void
   updateTransaction: (id: string, transaction: Partial<Transaction>) => void
   deleteTransaction: (id: string) => void
   deleteAllTransactions: () => void
@@ -204,68 +206,124 @@ export function DataProvider({ children }: { children: ReactNode }) {
     }
   ])
 
-  // Persist and hydrate data from localStorage
+  // Hydrate from IndexedDB on mount
   useEffect(() => {
-    try {
-      const storedTransactions = localStorage.getItem('agroflow:transactions')
-      if (storedTransactions) {
-        setTransactions(JSON.parse(storedTransactions))
-      }
-    } catch {}
-
-    try {
-      const storedCrops = localStorage.getItem('agroflow:crops')
-      if (storedCrops) {
-        setCrops(JSON.parse(storedCrops))
-      }
-    } catch {}
-
-    try {
-      const storedProperties = localStorage.getItem('agroflow:properties')
-      if (storedProperties) {
-        setProperties(JSON.parse(storedProperties))
-      }
-    } catch {}
+    let cancelled = false
+    ;(async () => {
+      try {
+        const [storedTransactions, storedCrops, storedProperties] = await Promise.all([
+          idb.getAll<Transaction>('transactions'),
+          idb.getAll<CropCycle>('crops'),
+          idb.getAll<PropertyItem>('properties'),
+        ])
+        if (!cancelled) {
+          if (storedTransactions && storedTransactions.length) setTransactions(storedTransactions)
+          if (storedCrops && storedCrops.length) setCrops(storedCrops)
+          if (storedProperties && storedProperties.length) setProperties(storedProperties)
+        }
+      } catch {}
+    })()
+    return () => { cancelled = true }
   }, [])
 
+  // Persist changes to IndexedDB (clear + bulkPut to keep stores in sync)
   useEffect(() => {
-    try {
-      localStorage.setItem('agroflow:transactions', JSON.stringify(transactions))
-    } catch {}
+    ;(async () => {
+      try {
+        await idb.clear('transactions')
+        await idb.bulkPut('transactions', transactions)
+      } catch {}
+    })()
   }, [transactions])
 
   useEffect(() => {
-    try {
-      localStorage.setItem('agroflow:crops', JSON.stringify(crops))
-    } catch {}
+    ;(async () => {
+      try {
+        await idb.clear('crops')
+        await idb.bulkPut('crops', crops)
+      } catch {}
+    })()
   }, [crops])
 
   useEffect(() => {
-    try {
-      localStorage.setItem('agroflow:properties', JSON.stringify(properties))
-    } catch {}
+    ;(async () => {
+      try {
+        await idb.clear('properties')
+        await idb.bulkPut('properties', properties)
+      } catch {}
+    })()
   }, [properties])
 
-  const addTransaction = (transaction: Omit<Transaction, 'id'>) => {
+  // Outbox helpers
+  const enqueue = async (op: Omit<OutboxOperation, 'id' | 'timestamp'>) => {
+    const id = typeof crypto !== 'undefined' && 'randomUUID' in crypto ? (crypto as any).randomUUID() : `${Date.now()}-${Math.random()}`
+    await idb.enqueue({ id, timestamp: Date.now(), ...op })
+  }
+
+  const syncOutbox = async () => {
+    if (typeof navigator !== 'undefined' && !navigator.onLine) return
+    try {
+      const ops = await idb.peekAll()
+      for (const op of ops) {
+        try {
+          const table = op.entity
+          if (op.action === 'create' || op.action === 'update') {
+            const { error } = await supabase.from(table).upsert(op.payload)
+            if (error) throw error
+          } else if (op.action === 'delete') {
+            const { error } = await supabase.from(table).delete().eq('id', op.payload?.id)
+            if (error) throw error
+          }
+          await idb.removeFromOutbox(op.id)
+        } catch {
+          // Stop processing to retry later if any op fails
+          break
+        }
+      }
+    } catch {}
+  }
+
+  useEffect(() => {
+    const handleOnline = () => { syncOutbox() }
+    if (typeof window !== 'undefined') {
+      window.addEventListener('online', handleOnline)
+    }
+    // try once on mount
+    syncOutbox()
+    return () => {
+      if (typeof window !== 'undefined') {
+        window.removeEventListener('online', handleOnline)
+      }
+    }
+  }, [])
+
+  const addTransaction = (transaction: Omit<Transaction, 'id' | 'user_id' | 'created_at'>) => {
     const newTransaction: Transaction = {
       ...transaction,
-      id: Date.now().toString()
+      id: Date.now().toString(),
+      user_id: 'user-1',
+      created_at: new Date().toISOString()
     }
     setTransactions(prev => [...prev, newTransaction])
+    enqueue({ entity: 'transactions', action: 'create', payload: newTransaction })
   }
 
   const updateTransaction = (id: string, transaction: Partial<Transaction>) => {
     setTransactions(prev => 
       prev.map(t => t.id === id ? { ...t, ...transaction } : t)
     )
+    enqueue({ entity: 'transactions', action: 'update', payload: { id, ...transaction } })
   }
 
   const deleteTransaction = (id: string) => {
     setTransactions(prev => prev.filter(t => t.id !== id))
+    enqueue({ entity: 'transactions', action: 'delete', payload: { id } })
   }
 
   const deleteAllTransactions = () => {
     setTransactions([])
+    // enqueue delete for existing
+    transactions.forEach(t => enqueue({ entity: 'transactions', action: 'delete', payload: { id: t.id } }))
   }
 
   const addCrop = (crop: Omit<CropCycle, 'id'>) => {
@@ -274,29 +332,35 @@ export function DataProvider({ children }: { children: ReactNode }) {
       id: Date.now().toString()
     }
     setCrops(prev => [...prev, newCrop])
+    enqueue({ entity: 'crops', action: 'create', payload: newCrop })
   }
 
   const updateCrop = (id: string, crop: Partial<CropCycle>) => {
     setCrops(prev => 
       prev.map(c => c.id === id ? { ...c, ...crop } : c)
     )
+    enqueue({ entity: 'crops', action: 'update', payload: { id, ...crop } })
   }
 
   const deleteCrop = (id: string) => {
     setCrops(prev => prev.filter(c => c.id !== id))
+    enqueue({ entity: 'crops', action: 'delete', payload: { id } })
   }
 
   const addProperty = (property: Omit<PropertyItem, 'id'>) => {
     const newProperty: PropertyItem = { ...property, id: Date.now().toString() }
     setProperties(prev => [...prev, newProperty])
+    enqueue({ entity: 'properties', action: 'create', payload: newProperty })
   }
 
   const updateProperty = (id: string, property: Partial<PropertyItem>) => {
     setProperties(prev => prev.map(p => p.id === id ? { ...p, ...property } : p))
+    enqueue({ entity: 'properties', action: 'update', payload: { id, ...property } })
   }
 
   const deleteProperty = (id: string) => {
     setProperties(prev => prev.filter(p => p.id !== id))
+    enqueue({ entity: 'properties', action: 'delete', payload: { id } })
   }
 
   return (
