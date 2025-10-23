@@ -242,7 +242,13 @@ export function DataProvider({ children }: { children: ReactNode }) {
             localStorage.setItem('agroflow-initialized', 'true')
           } else {
             // Sempre usa os dados do IndexedDB (mesmo que esteja vazio)
-            setTransactions(storedTransactions)
+            // Normalize stored transactions (defensive: amount as number, date as ISO string)
+            const normalizedTx = storedTransactions.map((t) => ({
+              ...t,
+              amount: Number((t as any).amount) || 0,
+              date: (typeof (t as any).date === 'string' ? (t as any).date : new Date((t as any).date).toISOString().split('T')[0])
+            }))
+            setTransactions(normalizedTx)
             setCrops(storedCrops)
             setProperties(storedProperties)
             localStorage.setItem('agroflow-initialized', 'true')

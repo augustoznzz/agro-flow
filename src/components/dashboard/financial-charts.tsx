@@ -45,8 +45,11 @@ export function FinancialCharts({ transactions }: FinancialChartsProps) {
         monthMap.set(key, { income: 0, expense: 0, year, monthIndex })
       }
       const acc = monthMap.get(key)!
-      if (t.type === 'income') acc.income += t.amount
-      else acc.expense += t.amount
+      const amt = Number((t as any).amount)
+      if (isFinite(amt)) {
+        if (t.type === 'income') acc.income += amt
+        else acc.expense += amt
+      }
 
       if (year < minYear || (year === minYear && monthIndex < minMonthIndex)) {
         minYear = year
@@ -105,13 +108,15 @@ export function FinancialCharts({ transactions }: FinancialChartsProps) {
     const categoryData: { [key: string]: { income: number; expense: number } } = {}
     
     transactions.forEach(transaction => {
+      const amt = Number((transaction as any).amount)
+      if (!isFinite(amt)) return
       if (!categoryData[transaction.category]) {
         categoryData[transaction.category] = { income: 0, expense: 0 }
       }
       if (transaction.type === 'income') {
-        categoryData[transaction.category].income += transaction.amount
+        categoryData[transaction.category].income += amt
       } else {
-        categoryData[transaction.category].expense += transaction.amount
+        categoryData[transaction.category].expense += amt
       }
     })
     
@@ -125,7 +130,7 @@ export function FinancialCharts({ transactions }: FinancialChartsProps) {
 
   const monthlyData = getMonthlyData()
   const categoryData = getCategoryData()
-  const rawMax = monthlyData.length ? Math.max(...monthlyData.map(d => Math.max(d.income, d.expense))) : 0
+  const rawMax = monthlyData.length ? Math.max(...monthlyData.map(d => Math.max(Number(d.income) || 0, Number(d.expense) || 0))) : 0
   const yMax = getNiceMax(rawMax <= 0 ? 1 : rawMax)
 
   // Cores para categorias

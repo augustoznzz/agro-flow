@@ -35,17 +35,18 @@ export function CashFlowChart() {
       const transactionDate = new Date(transaction.date)
       const transactionYear = transactionDate.getFullYear()
       const transactionMonth = transactionDate.getMonth()
+      const amount = Number((transaction as any).amount)
 
       // Find the corresponding month in our array
       const monthData = last12Months.find(
         m => m.year === transactionYear && m.monthIndex === transactionMonth
       )
 
-      if (monthData) {
+      if (monthData && isFinite(amount)) {
         if (transaction.type === 'income') {
-          monthData.receitas += transaction.amount
+          monthData.receitas += amount
         } else {
-          monthData.despesas += transaction.amount
+          monthData.despesas += amount
         }
       }
     })
@@ -78,7 +79,11 @@ export function CashFlowChart() {
   }
 
   const yMaxRaw = useMemo(() => {
-    return chartData.reduce((max, d) => Math.max(max, d.receitas, d.despesas), 0)
+    return chartData.reduce((max, d) => {
+      const r = Number(d.receitas) || 0
+      const e = Number(d.despesas) || 0
+      return Math.max(max, r, e)
+    }, 0)
   }, [chartData])
 
   const yMax = useMemo(() => niceMax(yMaxRaw <= 0 ? 1 : yMaxRaw), [yMaxRaw])
