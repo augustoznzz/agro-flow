@@ -3,22 +3,13 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import { useData } from '@/contexts/data-context'
-import { useMemo, useState, useEffect } from 'react'
+import { useMemo, useState, useEffect, useCallback } from 'react'
 import { ChartSkeletonCard } from '@/components/ui/chart-skeleton'
 
 const monthNames = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
 
-export function CashFlowChart() {
+function CashFlowChartContent() {
   const { transactions } = useData()
-  const [isClient, setIsClient] = useState(false)
-
-  useEffect(() => {
-    setIsClient(true)
-  }, [])
-
-  if (!isClient) {
-    return <ChartSkeletonCard />
-  }
 
   const chartData = useMemo(() => {
     // Get current date and calculate 12 months back
@@ -89,7 +80,7 @@ export function CashFlowChart() {
     }))
   }, [transactions])
 
-  const niceMax = (value: number) => {
+  const niceMax = useCallback((value: number) => {
     if (!isFinite(value) || value <= 0) return 1
     const pow10 = Math.pow(10, Math.floor(Math.log10(value)))
     const normalized = value / pow10
@@ -99,7 +90,7 @@ export function CashFlowChart() {
     else if (normalized <= 5) niceNorm = 5
     else niceNorm = 10
     return niceNorm * pow10
-  }
+  }, [])
 
   const formatCurrencyCompact = (n: number) => {
     if (!isFinite(n)) return 'R$ 0'
@@ -175,4 +166,18 @@ export function CashFlowChart() {
       </CardContent>
     </Card>
   )
+}
+
+export function CashFlowChart() {
+  const [mounted, setMounted] = useState(false)
+
+  useEffect(() => {
+    setMounted(true)
+  }, [])
+
+  if (!mounted) {
+    return <ChartSkeletonCard />
+  }
+
+  return <CashFlowChartContent />
 }

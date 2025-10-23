@@ -14,6 +14,7 @@ import { PropertyManagementAuto } from '@/components/properties/property-managem
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ReportGenerator } from '@/components/reports/report-generator'
 import { TransactionHistory } from '@/components/transactions/transaction-history'
+import { ErrorBoundary } from '@/components/ui/error-boundary'
 
 function MainApp() {
   const { user, loading } = useAuth()
@@ -62,7 +63,9 @@ function MainApp() {
             <DashboardMetrics />
             <div className="grid gap-4 lg:grid-cols-3">
               <div className="lg:col-span-2">
-                <CashFlowChart />
+                <ErrorBoundary>
+                  <CashFlowChart />
+                </ErrorBoundary>
               </div>
               <div className="lg:col-span-1">
                 <RecentTransactions />
