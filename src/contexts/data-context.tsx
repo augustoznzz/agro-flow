@@ -29,19 +29,21 @@ interface DataContextType {
   addTransaction: (transaction: Omit<Transaction, 'id' | 'user_id' | 'created_at'>) => void
   updateTransaction: (id: string, transaction: Partial<Transaction>) => void
   deleteTransaction: (id: string) => void
-  deleteAllTransactions: () => void
+  deleteAllTransactions: () => Promise<void>
   
   crops: CropCycle[]
   setCrops: (crops: CropCycle[]) => void
   addCrop: (crop: Omit<CropCycle, 'id'>) => void
   updateCrop: (id: string, crop: Partial<CropCycle>) => void
   deleteCrop: (id: string) => void
+  deleteAllCrops: () => Promise<void>
 
   properties: PropertyItem[]
   setProperties: (properties: PropertyItem[]) => void
   addProperty: (property: Omit<PropertyItem, 'id'>) => void
   updateProperty: (id: string, property: Partial<PropertyItem>) => void
   deleteProperty: (id: string) => void
+  deleteAllProperties: () => Promise<void>
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined)
@@ -320,10 +322,18 @@ export function DataProvider({ children }: { children: ReactNode }) {
     enqueue({ entity: 'transactions', action: 'delete', payload: { id } })
   }
 
-  const deleteAllTransactions = () => {
+  const deleteAllTransactions = async () => {
+    // Enfileira deleção de cada transação existente para sincronizar com Supabase
+    const deletePromises = transactions.map(t => 
+      enqueue({ entity: 'transactions', action: 'delete', payload: { id: t.id } })
+    )
+    await Promise.all(deletePromises)
+    
+    // Limpa estado local
     setTransactions([])
-    // enqueue delete for existing
-    transactions.forEach(t => enqueue({ entity: 'transactions', action: 'delete', payload: { id: t.id } }))
+    
+    // Tenta sincronizar imediatamente
+    syncOutbox()
   }
 
   const addCrop = (crop: Omit<CropCycle, 'id'>) => {
@@ -347,6 +357,20 @@ export function DataProvider({ children }: { children: ReactNode }) {
     enqueue({ entity: 'crops', action: 'delete', payload: { id } })
   }
 
+  const deleteAllCrops = async () => {
+    // Enfileira deleção de cada safra existente para sincronizar com Supabase
+    const deletePromises = crops.map(c => 
+      enqueue({ entity: 'crops', action: 'delete', payload: { id: c.id } })
+    )
+    await Promise.all(deletePromises)
+    
+    // Limpa estado local
+    setCrops([])
+    
+    // Tenta sincronizar imediatamente
+    syncOutbox()
+  }
+
   const addProperty = (property: Omit<PropertyItem, 'id'>) => {
     const newProperty: PropertyItem = { ...property, id: Date.now().toString() }
     setProperties(prev => [...prev, newProperty])
@@ -363,6 +387,20 @@ export function DataProvider({ children }: { children: ReactNode }) {
     enqueue({ entity: 'properties', action: 'delete', payload: { id } })
   }
 
+  const deleteAllProperties = async () => {
+    // Enfileira deleção de cada propriedade existente para sincronizar com Supabase
+    const deletePromises = properties.map(p => 
+      enqueue({ entity: 'properties', action: 'delete', payload: { id: p.id } })
+    )
+    await Promise.all(deletePromises)
+    
+    // Limpa estado local
+    setProperties([])
+    
+    // Tenta sincronizar imediatamente
+    syncOutbox()
+  }
+
   return (
     <DataContext.Provider value={{
       transactions,
@@ -376,11 +414,13 @@ export function DataProvider({ children }: { children: ReactNode }) {
       addCrop,
       updateCrop,
       deleteCrop,
+      deleteAllCrops,
       properties,
       setProperties,
       addProperty,
       updateProperty,
-      deleteProperty
+      deleteProperty,
+      deleteAllProperties
     }}>
       {children}
     </DataContext.Provider>

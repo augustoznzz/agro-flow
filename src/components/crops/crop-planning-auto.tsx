@@ -11,7 +11,7 @@ import { useData, CropCycle } from '@/contexts/data-context'
 import { useAutoSave } from '@/hooks/use-auto-save'
 
 export function CropPlanningAuto() {
-  const { crops, addCrop, updateCrop, deleteCrop } = useData()
+  const { crops, addCrop, updateCrop, deleteCrop, deleteAllCrops } = useData()
 
   const [showForm, setShowForm] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
@@ -26,6 +26,7 @@ export function CropPlanningAuto() {
 
   const [showDelete, setShowDelete] = useState(false)
   const [deletingCrop, setDeletingCrop] = useState<CropCycle | null>(null)
+  const [showDeleteAll, setShowDeleteAll] = useState(false)
 
   // Auto-save quando editando
   const { status: autoSaveStatus } = useAutoSave({
@@ -109,6 +110,11 @@ export function CropPlanningAuto() {
     setDeletingCrop(null)
   }
 
+  const handleDeleteAll = async () => {
+    await deleteAllCrops()
+    setShowDeleteAll(false)
+  }
+
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'planning':
@@ -139,10 +145,18 @@ export function CropPlanningAuto() {
     <div className="space-y-6">
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold">Planejamento de Safra</h2>
-        <Button onClick={() => { resetForm(); setShowForm(!showForm) }}>
-          <Plus className="h-4 w-4 mr-2" />
-          Nova Safra
-        </Button>
+        <div className="flex gap-2">
+          {crops.length > 0 && (
+            <Button variant="destructive" onClick={() => setShowDeleteAll(true)}>
+              <Trash2 className="h-4 w-4 mr-2" />
+              Deletar Tudo
+            </Button>
+          )}
+          <Button onClick={() => { resetForm(); setShowForm(!showForm) }}>
+            <Plus className="h-4 w-4 mr-2" />
+            Nova Safra
+          </Button>
+        </div>
       </div>
 
       <Modal 
@@ -286,6 +300,26 @@ export function CropPlanningAuto() {
           <div className="flex justify-end gap-2">
             <Button variant="outline" onClick={() => setShowDelete(false)}>Cancelar</Button>
             <Button variant="destructive" onClick={handleDeleteCrop}>Excluir</Button>
+          </div>
+        </div>
+      </Modal>
+
+      <Modal open={showDeleteAll} onClose={() => setShowDeleteAll(false)} title="Deletar Todas as Safras" size="md">
+        <div className="space-y-4">
+          <p className="text-sm">
+            Tem certeza que deseja excluir <strong>todas as {crops.length} safras</strong>? 
+            Esta ação não pode ser desfeita e todas as safras serão removidas permanentemente da sua conta.
+          </p>
+          <div className="bg-yellow-50 border border-yellow-200 rounded-md p-3">
+            <p className="text-sm text-yellow-800">
+              ⚠️ Todas as safras serão removidas do sistema local e sincronizadas com o servidor.
+            </p>
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={() => setShowDeleteAll(false)}>Cancelar</Button>
+            <Button variant="destructive" onClick={handleDeleteAll}>
+              Confirmar Deleção
+            </Button>
           </div>
         </div>
       </Modal>

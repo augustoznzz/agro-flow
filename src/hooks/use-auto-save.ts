@@ -25,7 +25,7 @@ export function useAutoSave<T>({
   enabled = true 
 }: UseAutoSaveOptions<T>) {
   const [status, setStatus] = useState<AutoSaveStatus>('idle')
-  const timeoutRef = useRef<NodeJS.Timeout>()
+  const timeoutRef = useRef<NodeJS.Timeout | undefined>(undefined)
   const initialDataRef = useRef<T>(data)
   const isFirstRender = useRef(true)
 

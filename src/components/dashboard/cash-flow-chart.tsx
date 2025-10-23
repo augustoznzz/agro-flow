@@ -58,6 +58,31 @@ export function CashFlowChart() {
     }))
   }, [transactions])
 
+  const niceMax = (value: number) => {
+    if (!isFinite(value) || value <= 0) return 1
+    const pow10 = Math.pow(10, Math.floor(Math.log10(value)))
+    const normalized = value / pow10
+    let niceNorm = 1
+    if (normalized <= 1) niceNorm = 1
+    else if (normalized <= 2) niceNorm = 2
+    else if (normalized <= 5) niceNorm = 5
+    else niceNorm = 10
+    return niceNorm * pow10
+  }
+
+  const formatCurrencyCompact = (n: number) => {
+    if (!isFinite(n)) return 'R$ 0'
+    if (n >= 1_000_000) return `R$ ${(n / 1_000_000).toLocaleString('pt-BR', { maximumFractionDigits: 1 })}M`
+    if (n >= 1_000) return `R$ ${(n / 1_000).toLocaleString('pt-BR', { maximumFractionDigits: 0 })}k`
+    return `R$ ${n.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}`
+  }
+
+  const yMaxRaw = useMemo(() => {
+    return chartData.reduce((max, d) => Math.max(max, d.receitas, d.despesas), 0)
+  }, [chartData])
+
+  const yMax = useMemo(() => niceMax(yMaxRaw <= 0 ? 1 : yMaxRaw), [yMaxRaw])
+
   return (
     <Card className="w-full">
       <CardHeader>
@@ -76,6 +101,9 @@ export function CashFlowChart() {
             <YAxis 
               tick={{ fontSize: 12 }}
               stroke="#6b7280"
+              domain={[0, yMax]}
+              tickFormatter={(v) => formatCurrencyCompact(Number(v))}
+              tickCount={6}
             />
             <Tooltip 
               formatter={(value, name) => [

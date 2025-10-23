@@ -8,9 +8,9 @@ import { Navigation } from '@/components/layout/navigation'
 import { DashboardMetrics } from '@/components/dashboard/metrics-card'
 import { CashFlowChart } from '@/components/dashboard/cash-flow-chart'
 import { RecentTransactions } from '@/components/dashboard/recent-transactions'
-import { CropPlanning } from '@/components/crops/crop-planning'
-import { TransactionForm } from '@/components/transactions/transaction-form'
-import { PropertyManagement } from '@/components/properties/property-management'
+import { CropPlanningAuto } from '@/components/crops/crop-planning-auto'
+import { TransactionFormAuto } from '@/components/transactions/transaction-form-auto'
+import { PropertyManagementAuto } from '@/components/properties/property-management-auto'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ReportGenerator } from '@/components/reports/report-generator'
 import { TransactionHistory } from '@/components/transactions/transaction-history'
@@ -71,11 +71,11 @@ function MainApp() {
           </div>
         )
       case 'crops':
-        return <CropPlanning />
+        return <CropPlanningAuto />
       case 'transactions':
-        return <TransactionForm />
+        return <TransactionFormAuto />
       case 'properties':
-        return <PropertyManagement />
+        return <PropertyManagementAuto />
       case 'reports':
         return (
           <div className="space-y-6">

@@ -26,26 +26,79 @@ interface FinancialChartsProps {
 export function FinancialCharts({ transactions }: FinancialChartsProps) {
   // Processar dados para gráficos
   const getMonthlyData = () => {
-    const monthlyData: { [key: string]: { income: number; expense: number } } = {}
-    
-    transactions.forEach(transaction => {
-      const month = new Date(transaction.date).toLocaleDateString('pt-BR', { month: 'short', year: 'numeric' })
-      if (!monthlyData[month]) {
-        monthlyData[month] = { income: 0, expense: 0 }
+    if (!transactions || transactions.length === 0) return [] as Array<{ month: string; income: number; expense: number; balance: number; year: number; monthIndex: number }>
+
+    const monthMap = new Map<string, { income: number; expense: number; year: number; monthIndex: number }>()
+
+    let minYear = Infinity
+    let minMonthIndex = 0
+    let maxYear = -Infinity
+    let maxMonthIndex = 0
+
+    for (const t of transactions) {
+      const d = new Date(t.date)
+      const year = d.getFullYear()
+      const monthIndex = d.getMonth()
+      const key = `${year}-${String(monthIndex + 1).padStart(2, '0')}`
+
+      if (!monthMap.has(key)) {
+        monthMap.set(key, { income: 0, expense: 0, year, monthIndex })
       }
-      if (transaction.type === 'income') {
-        monthlyData[month].income += transaction.amount
-      } else {
-        monthlyData[month].expense += transaction.amount
+      const acc = monthMap.get(key)!
+      if (t.type === 'income') acc.income += t.amount
+      else acc.expense += t.amount
+
+      if (year < minYear || (year === minYear && monthIndex < minMonthIndex)) {
+        minYear = year
+        minMonthIndex = monthIndex
       }
-    })
-    
-    return Object.entries(monthlyData).map(([month, data]) => ({
-      month,
-      income: data.income,
-      expense: data.expense,
-      balance: data.income - data.expense
-    }))
+      if (year > maxYear || (year === maxYear && monthIndex > maxMonthIndex)) {
+        maxYear = year
+        maxMonthIndex = monthIndex
+      }
+    }
+
+    const result: Array<{ month: string; income: number; expense: number; balance: number; year: number; monthIndex: number }> = []
+    if (maxYear === -Infinity) return result
+
+    let y = minYear
+    let m = minMonthIndex
+    while (y < maxYear || (y === maxYear && m <= maxMonthIndex)) {
+      const key = `${y}-${String(m + 1).padStart(2, '0')}`
+      const entry = monthMap.get(key) || { income: 0, expense: 0, year: y, monthIndex: m }
+      const label = new Date(y, m, 1).toLocaleDateString('pt-BR', { month: 'short', year: 'numeric' })
+      result.push({
+        month: label,
+        income: entry.income,
+        expense: entry.expense,
+        balance: entry.income - entry.expense,
+        year: y,
+        monthIndex: m
+      })
+      m++
+      if (m >= 12) { m = 0; y++ }
+    }
+
+    return result
+  }
+
+  const getNiceMax = (value: number) => {
+    if (!isFinite(value) || value <= 0) return 1
+    const pow10 = Math.pow(10, Math.floor(Math.log10(value)))
+    const normalized = value / pow10
+    let niceNorm = 1
+    if (normalized <= 1) niceNorm = 1
+    else if (normalized <= 2) niceNorm = 2
+    else if (normalized <= 5) niceNorm = 5
+    else niceNorm = 10
+    return niceNorm * pow10
+  }
+
+  const formatCurrencyCompact = (n: number) => {
+    if (!isFinite(n)) return 'R$ 0'
+    if (n >= 1_000_000) return `R$ ${(n / 1_000_000).toLocaleString('pt-BR', { maximumFractionDigits: 1 })}M`
+    if (n >= 1_000) return `R$ ${(n / 1_000).toLocaleString('pt-BR', { maximumFractionDigits: 0 })}k`
+    return `R$ ${n.toLocaleString('pt-BR', { maximumFractionDigits: 0 })}`
   }
 
   const getCategoryData = () => {
@@ -72,7 +125,8 @@ export function FinancialCharts({ transactions }: FinancialChartsProps) {
 
   const monthlyData = getMonthlyData()
   const categoryData = getCategoryData()
-  const maxAmount = Math.max(...monthlyData.map(d => Math.max(d.income, d.expense)))
+  const rawMax = monthlyData.length ? Math.max(...monthlyData.map(d => Math.max(d.income, d.expense))) : 0
+  const yMax = getNiceMax(rawMax <= 0 ? 1 : rawMax)
 
   // Cores para categorias
   const categoryColors = [
@@ -99,11 +153,14 @@ export function FinancialCharts({ transactions }: FinancialChartsProps) {
           <div className="relative">
             {/* Eixo Y com valores */}
             <div className="absolute left-0 top-0 bottom-0 w-16 flex flex-col justify-between text-xs text-slate-500">
-              {[...Array(6)].map((_, i) => (
-                <div key={i} className="text-right pr-2">
-                  R$ {Math.round((maxAmount / 5) * (5 - i) / 1000)}k
-                </div>
-              ))}
+              {[...Array(6)].map((_, i) => {
+                const val = (yMax / 5) * (5 - i)
+                return (
+                  <div key={i} className="text-right pr-2">
+                    {formatCurrencyCompact(val)}
+                  </div>
+                )
+              })}
             </div>
             
             {/* Área do gráfico */}
@@ -122,9 +179,9 @@ export function FinancialCharts({ transactions }: FinancialChartsProps) {
               {/* Barras do gráfico */}
               <div className="absolute inset-0 flex items-end justify-between px-4 pb-2">
                 {monthlyData.map((data, index) => {
-                  const incomeHeight = (data.income / maxAmount) * 100
-                  const expenseHeight = (data.expense / maxAmount) * 100
-                  const balanceHeight = Math.abs(data.balance / maxAmount) * 100
+                  const incomeHeight = (data.income / yMax) * 100
+                  const expenseHeight = (data.expense / yMax) * 100
+                  const balanceHeight = Math.abs(data.balance / yMax) * 100
                   
                   return (
                     <div key={data.month} className="flex flex-col items-center group relative">
@@ -424,7 +481,7 @@ export function FinancialCharts({ transactions }: FinancialChartsProps) {
                       data.balance >= 0 ? 'bg-green-500' : 'bg-red-500'
                     }`}
                     style={{ 
-                      width: `${Math.min(100, Math.abs(data.balance) / maxAmount * 100)}%`
+                      width: `${Math.min(100, Math.abs(data.balance) / yMax * 100)}%`
                     }}
                   />
                 </div>
