@@ -49,166 +49,6 @@ interface DataContextType {
 const DataContext = createContext<DataContextType | undefined>(undefined)
 
 export function DataProvider({ children }: { children: ReactNode }) {
-  // Dados de exemplo - usados apenas na primeira vez
-  const defaultTransactions: Transaction[] = [
-    {
-      id: '1',
-      user_id: 'user-1',
-      description: 'Venda de Soja',
-      amount: 15000,
-      type: 'income',
-      category: 'Vendas',
-      date: '2024-01-15',
-      created_at: '2024-01-15T10:00:00Z'
-    },
-    {
-      id: '2',
-      user_id: 'user-1',
-      description: 'Compra de Fertilizantes',
-      amount: 3200,
-      type: 'expense',
-      category: 'Insumos',
-      date: '2024-01-14',
-      created_at: '2024-01-14T10:00:00Z'
-    },
-    {
-      id: '3',
-      user_id: 'user-1',
-      description: 'Venda de Milho',
-      amount: 8500,
-      type: 'income',
-      category: 'Vendas',
-      date: '2024-01-20',
-      created_at: '2024-01-20T10:00:00Z'
-    },
-    {
-      id: '4',
-      user_id: 'user-1',
-      description: 'Mão de Obra',
-      amount: 1800,
-      type: 'expense',
-      category: 'Mão de Obra',
-      date: '2024-01-18',
-      created_at: '2024-01-18T10:00:00Z'
-    },
-    {
-      id: '5',
-      user_id: 'user-1',
-      description: 'Venda de Algodão',
-      amount: 12000,
-      type: 'income',
-      category: 'Vendas',
-      date: '2024-02-05',
-      created_at: '2024-02-05T10:00:00Z'
-    },
-    {
-      id: '6',
-      user_id: 'user-1',
-      description: 'Sementes',
-      amount: 2500,
-      type: 'expense',
-      category: 'Insumos',
-      date: '2024-02-03',
-      created_at: '2024-02-03T10:00:00Z'
-    },
-    {
-      id: '7',
-      user_id: 'user-1',
-      description: 'Combustível',
-      amount: 1200,
-      type: 'expense',
-      category: 'Combustível',
-      date: '2024-02-08',
-      created_at: '2024-02-08T10:00:00Z'
-    },
-    {
-      id: '8',
-      user_id: 'user-1',
-      description: 'Venda de Feijão',
-      amount: 6800,
-      type: 'income',
-      category: 'Vendas',
-      date: '2024-02-15',
-      created_at: '2024-02-15T10:00:00Z'
-    },
-    {
-      id: '9',
-      user_id: 'user-1',
-      description: 'Defensivos',
-      amount: 4200,
-      type: 'expense',
-      category: 'Insumos',
-      date: '2024-02-12',
-      created_at: '2024-02-12T10:00:00Z'
-    },
-    {
-      id: '10',
-      user_id: 'user-1',
-      description: 'Venda de Trigo',
-      amount: 9500,
-      type: 'income',
-      category: 'Vendas',
-      date: '2024-03-02',
-      created_at: '2024-03-02T10:00:00Z'
-    }
-  ]
-
-  const defaultCrops: CropCycle[] = [
-    {
-      id: '1',
-      cropType: 'Soja',
-      area: 50,
-      plantingDate: '2024-02-15',
-      estimatedCost: 25000,
-      estimatedRevenue: 45000,
-      status: 'planted'
-    },
-    {
-      id: '2',
-      cropType: 'Milho',
-      area: 30,
-      plantingDate: '2024-03-01',
-      estimatedCost: 15000,
-      estimatedRevenue: 30000,
-      status: 'planted'
-    },
-    {
-      id: '3',
-      cropType: 'Algodão',
-      area: 25,
-      plantingDate: '2024-01-10',
-      estimatedCost: 20000,
-      estimatedRevenue: 35000,
-      status: 'harvested'
-    },
-    {
-      id: '4',
-      cropType: 'Café',
-      area: 15,
-      plantingDate: '2024-04-01',
-      estimatedCost: 12000,
-      estimatedRevenue: 25000,
-      status: 'planning'
-    }
-  ]
-
-  const defaultProperties: PropertyItem[] = [
-    {
-      id: '1',
-      name: 'Fazenda São José',
-      area: 150,
-      location: 'Rio Verde - GO',
-      description: 'Propriedade principal para cultivo de soja e milho'
-    },
-    {
-      id: '2',
-      name: 'Sítio Boa Vista',
-      area: 45,
-      location: 'Chapadão do Céu - GO',
-      description: 'Pequena propriedade para horticultura'
-    }
-  ]
-
   // Inicializar com arrays vazios - os dados virão do IndexedDB
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [crops, setCrops] = useState<CropCycle[]>([])
@@ -220,6 +60,166 @@ export function DataProvider({ children }: { children: ReactNode }) {
     let cancelled = false
     ;(async () => {
       try {
+        // Dados de exemplo - usados apenas na primeira vez
+        const defaultTransactions: Transaction[] = [
+          {
+            id: '1',
+            user_id: 'user-1',
+            description: 'Venda de Soja',
+            amount: 15000,
+            type: 'income',
+            category: 'Vendas',
+            date: '2024-01-15',
+            created_at: '2024-01-15T10:00:00Z'
+          },
+          {
+            id: '2',
+            user_id: 'user-1',
+            description: 'Compra de Fertilizantes',
+            amount: 3200,
+            type: 'expense',
+            category: 'Insumos',
+            date: '2024-01-14',
+            created_at: '2024-01-14T10:00:00Z'
+          },
+          {
+            id: '3',
+            user_id: 'user-1',
+            description: 'Venda de Milho',
+            amount: 8500,
+            type: 'income',
+            category: 'Vendas',
+            date: '2024-01-20',
+            created_at: '2024-01-20T10:00:00Z'
+          },
+          {
+            id: '4',
+            user_id: 'user-1',
+            description: 'Mão de Obra',
+            amount: 1800,
+            type: 'expense',
+            category: 'Mão de Obra',
+            date: '2024-01-18',
+            created_at: '2024-01-18T10:00:00Z'
+          },
+          {
+            id: '5',
+            user_id: 'user-1',
+            description: 'Venda de Algodão',
+            amount: 12000,
+            type: 'income',
+            category: 'Vendas',
+            date: '2024-02-05',
+            created_at: '2024-02-05T10:00:00Z'
+          },
+          {
+            id: '6',
+            user_id: 'user-1',
+            description: 'Sementes',
+            amount: 2500,
+            type: 'expense',
+            category: 'Insumos',
+            date: '2024-02-03',
+            created_at: '2024-02-03T10:00:00Z'
+          },
+          {
+            id: '7',
+            user_id: 'user-1',
+            description: 'Combustível',
+            amount: 1200,
+            type: 'expense',
+            category: 'Combustível',
+            date: '2024-02-08',
+            created_at: '2024-02-08T10:00:00Z'
+          },
+          {
+            id: '8',
+            user_id: 'user-1',
+            description: 'Venda de Feijão',
+            amount: 6800,
+            type: 'income',
+            category: 'Vendas',
+            date: '2024-02-15',
+            created_at: '2024-02-15T10:00:00Z'
+          },
+          {
+            id: '9',
+            user_id: 'user-1',
+            description: 'Defensivos',
+            amount: 4200,
+            type: 'expense',
+            category: 'Insumos',
+            date: '2024-02-12',
+            created_at: '2024-02-12T10:00:00Z'
+          },
+          {
+            id: '10',
+            user_id: 'user-1',
+            description: 'Venda de Trigo',
+            amount: 9500,
+            type: 'income',
+            category: 'Vendas',
+            date: '2024-03-02',
+            created_at: '2024-03-02T10:00:00Z'
+          }
+        ]
+
+        const defaultCrops: CropCycle[] = [
+          {
+            id: '1',
+            cropType: 'Soja',
+            area: 50,
+            plantingDate: '2024-02-15',
+            estimatedCost: 25000,
+            estimatedRevenue: 45000,
+            status: 'planted'
+          },
+          {
+            id: '2',
+            cropType: 'Milho',
+            area: 30,
+            plantingDate: '2024-03-01',
+            estimatedCost: 15000,
+            estimatedRevenue: 30000,
+            status: 'planted'
+          },
+          {
+            id: '3',
+            cropType: 'Algodão',
+            area: 25,
+            plantingDate: '2024-01-10',
+            estimatedCost: 20000,
+            estimatedRevenue: 35000,
+            status: 'harvested'
+          },
+          {
+            id: '4',
+            cropType: 'Café',
+            area: 15,
+            plantingDate: '2024-04-01',
+            estimatedCost: 12000,
+            estimatedRevenue: 25000,
+            status: 'planning'
+          }
+        ]
+
+        const defaultProperties: PropertyItem[] = [
+          {
+            id: '1',
+            name: 'Fazenda São José',
+            area: 150,
+            location: 'Rio Verde - GO',
+            description: 'Propriedade principal para cultivo de soja e milho'
+          },
+          {
+            id: '2',
+            name: 'Sítio Boa Vista',
+            area: 45,
+            location: 'Chapadão do Céu - GO',
+            description: 'Pequena propriedade para horticultura'
+          }
+        ]
+
         // Verifica se já foi inicializado antes (flag no localStorage)
         const hasInitialized = localStorage.getItem('agroflow-initialized')
         
@@ -245,8 +245,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
             // Normalize stored transactions (defensive: amount as number, date as ISO string)
             const normalizedTx = storedTransactions.map((t) => ({
               ...t,
-              amount: Number((t as any).amount) || 0,
-              date: (typeof (t as any).date === 'string' ? (t as any).date : new Date((t as any).date).toISOString().split('T')[0])
+              amount: Number((t as Transaction).amount) || 0,
+              date: (typeof (t as Transaction).date === 'string' ? (t as Transaction).date : new Date((t as Transaction).date).toISOString().split('T')[0])
             }))
             setTransactions(normalizedTx)
             setCrops(storedCrops)
@@ -296,7 +296,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   // Outbox helpers
   const enqueue = async (op: Omit<OutboxOperation, 'id' | 'timestamp'>) => {
-    const id = typeof crypto !== 'undefined' && 'randomUUID' in crypto ? (crypto as any).randomUUID() : `${Date.now()}-${Math.random()}`
+    const id = typeof crypto !== 'undefined' && 'randomUUID' in crypto ? (crypto as Crypto).randomUUID() : `${Date.now()}-${Math.random()}`
     await idb.enqueue({ id, timestamp: Date.now(), ...op })
   }
 

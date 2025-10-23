@@ -2,7 +2,9 @@ import * as React from "react"
 import { cn } from "@/lib/utils"
 
 export interface InputProps
-  extends React.InputHTMLAttributes<HTMLInputElement> {}
+  extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size'> {
+  size?: 'sm' | 'md' | 'lg'
+}
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>((
   { className, type, onChange, ...props },
@@ -42,7 +44,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>((
     }
 
     // Format value for display with thousand separators (dots every 3 digits)
-    const rawValue = (props as any).value
+    const rawValue = props.value
     const rawString = typeof rawValue === "number" ? String(rawValue) : typeof rawValue === "string" ? rawValue : ""
     
     const formatDisplay = (val: string) => {
@@ -122,7 +124,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>((
     }
     
     // Format value for display
-    const rawValue = (props as any).value || ""
+    const rawValue = props.value || ""
     const formatDateDisplay = (val: string) => {
       const digits = val.replace(/\D/g, "").slice(0, 8)
       let result = ""

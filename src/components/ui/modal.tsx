@@ -87,7 +87,7 @@ export function Modal({
       document.body.style.overflow = originalOverflow
       previouslyFocused?.focus?.()
     }
-  }, [open])
+  }, [open, initialFocusRef])
 
   if (!open) return null
 

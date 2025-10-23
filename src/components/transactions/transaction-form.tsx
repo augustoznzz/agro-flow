@@ -8,7 +8,6 @@ import { Plus, Minus } from 'lucide-react'
 import { FinancialCharts } from '@/components/dashboard/financial-charts'
 import { Modal } from '@/components/ui/modal'
 import { useData } from '@/contexts/data-context'
-import type { Transaction } from '@/types'
 
 export function TransactionForm() {
   const { transactions, addTransaction } = useData()

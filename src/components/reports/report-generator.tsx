@@ -272,7 +272,7 @@ export function ReportGenerator() {
       addText('RESUMO DAS SAFRAS', 14, true)
       checkNewPage()
       
-      reportData.cropData.forEach((crop, index) => {
+      reportData.cropData.forEach((crop) => {
         addText(`${crop.name}:`, 12, true)
         addText(`  Área: ${crop.area} hectares`, 10)
         addText(`  Produção: ${crop.production.toLocaleString('pt-BR')} kg`, 10)
@@ -468,7 +468,7 @@ export function ReportGenerator() {
                         cx="50%"
                         cy="50%"
                         labelLine={false}
-                        label={({ name, percent }: any) => `${name} ${(percent * 100).toFixed(0)}%`}
+                        label={({ name, percent }: { name: string; percent: number }) => `${name} ${(percent * 100).toFixed(0)}%`}
                         outerRadius={80}
                         fill="#8884d8"
                         dataKey="area"

@@ -2,8 +2,6 @@
 
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { TrendingUp, TrendingDown, DollarSign, Activity, PieChart } from 'lucide-react'
-import { useState, useEffect } from 'react'
-import { ChartSkeleton } from '@/components/ui/chart-skeleton'
 
 interface Transaction {
   id: string
@@ -211,7 +209,7 @@ function FinancialChartsContent({ transactions }: FinancialChartsProps) {
               
               {/* Barras do gráfico */}
               <div className="absolute inset-0 flex items-end justify-between px-4 pb-2">
-                {monthlyData.map((data, index) => {
+                {monthlyData.map((data) => {
                   const incomeHeight = (data.income / yMax) * 100
                   const expenseHeight = (data.expense / yMax) * 100
                   const balanceHeight = Math.abs(data.balance / yMax) * 100
@@ -486,7 +484,7 @@ function FinancialChartsContent({ transactions }: FinancialChartsProps) {
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {monthlyData.slice(-3).map((data, index) => (
+            {monthlyData.slice(-3).map((data) => (
               <div key={data.month} className="text-center space-y-3">
                 <div className="text-lg font-medium text-gray-700">{data.month}</div>
                 <div className="space-y-2">
@@ -528,34 +526,5 @@ function FinancialChartsContent({ transactions }: FinancialChartsProps) {
 }
 
 export function FinancialCharts({ transactions }: FinancialChartsProps) {
-  const [mounted, setMounted] = useState(false)
-
-  useEffect(() => {
-    setMounted(true)
-  }, [])
-
-  if (!mounted) {
-    return (
-      <div className="space-y-6">
-        <Card className="overflow-hidden shadow-lg">
-          <CardHeader className="bg-gradient-to-r from-slate-50 via-blue-50 to-indigo-50 border-b border-gray-100">
-            <CardTitle className="flex items-center gap-3 text-slate-800">
-              <div className="p-3 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-xl shadow-md">
-                <Activity className="h-6 w-6 text-white" />
-              </div>
-              <div>
-                <h3 className="text-xl font-bold">Análise Financeira Mensal</h3>
-                <p className="text-sm text-slate-600 font-normal">Receitas, Despesas e Saldo por Período</p>
-              </div>
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="p-8">
-            <ChartSkeleton />
-          </CardContent>
-        </Card>
-      </div>
-    )
-  }
-
   return <FinancialChartsContent transactions={transactions} />
 }

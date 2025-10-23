@@ -4,7 +4,7 @@ export type OutboxOperation = {
   id: string; // uuid
   entity: 'transactions' | 'crops' | 'properties';
   action: 'create' | 'update' | 'delete';
-  payload: any; // normalized object
+  payload: Record<string, unknown>; // normalized object
   timestamp: number;
 };
 

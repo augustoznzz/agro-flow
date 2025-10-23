@@ -3,8 +3,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
 import { useData } from '@/contexts/data-context'
-import { useMemo, useState, useEffect, useCallback } from 'react'
-import { ChartSkeletonCard } from '@/components/ui/chart-skeleton'
+import { useMemo, useCallback } from 'react'
 
 const monthNames = ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun', 'Jul', 'Ago', 'Set', 'Out', 'Nov', 'Dez']
 
@@ -107,7 +106,7 @@ function CashFlowChartContent() {
     }, 0)
   }, [chartData])
 
-  const yMax = useMemo(() => niceMax(yMaxRaw <= 0 ? 1 : yMaxRaw), [yMaxRaw])
+  const yMax = useMemo(() => niceMax(yMaxRaw <= 0 ? 1 : yMaxRaw), [yMaxRaw, niceMax])
 
   return (
     <Card className="w-full">
@@ -169,15 +168,5 @@ function CashFlowChartContent() {
 }
 
 export function CashFlowChart() {
-  const [mounted, setMounted] = useState(false)
-
-  useEffect(() => {
-    setMounted(true)
-  }, [])
-
-  if (!mounted) {
-    return <ChartSkeletonCard />
-  }
-
   return <CashFlowChartContent />
 }

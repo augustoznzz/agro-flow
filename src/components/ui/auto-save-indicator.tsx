@@ -1,6 +1,6 @@
 'use client'
 
-import { CheckCircle2, Cloud, CloudOff, Loader2 } from 'lucide-react'
+import { CheckCircle2, CloudOff, Loader2 } from 'lucide-react'
 import type { AutoSaveStatus } from '@/hooks/use-auto-save'
 
 interface AutoSaveIndicatorProps {
