@@ -255,7 +255,9 @@ export function DataProvider({ children }: { children: ReactNode }) {
           }
           setIsInitialized(true)
         }
-      } catch {}
+      } catch (error) {
+        console.error('DataProvider: Initialization error:', error)
+      }
     })()
     return () => { cancelled = true }
   }, [])

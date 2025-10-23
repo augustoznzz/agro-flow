@@ -26,7 +26,7 @@ interface FinancialChartsProps {
 export function FinancialCharts({ transactions }: FinancialChartsProps) {
   // Processar dados para gráficos
   const getMonthlyData = () => {
-    if (!transactions || transactions.length === 0) return [] as Array<{ month: string; income: number; expense: number; balance: number; year: number; monthIndex: number }>
+    if (!transactions || !Array.isArray(transactions) || transactions.length === 0) return [] as Array<{ month: string; income: number; expense: number; balance: number; year: number; monthIndex: number }>
 
     // Helper para parsear data corretamente (sem timezone ambiguidade)
     const parseDate = (dateStr: string): { year: number; month: number } => {
@@ -54,6 +54,8 @@ export function FinancialCharts({ transactions }: FinancialChartsProps) {
     let maxMonthIndex = 0
 
     for (const t of transactions) {
+      if (!t || !t.date || t.amount === undefined) continue
+      
       const { year, month: monthIndex } = parseDate(t.date)
       const key = `${year}-${String(monthIndex + 1).padStart(2, '0')}`
 
@@ -61,10 +63,10 @@ export function FinancialCharts({ transactions }: FinancialChartsProps) {
         monthMap.set(key, { income: 0, expense: 0, year, monthIndex })
       }
       const acc = monthMap.get(key)!
-      const amt = Number((t as any).amount)
-      if (isFinite(amt)) {
+      const amt = Number(t.amount)
+      if (isFinite(amt) && amt > 0) {
         if (t.type === 'income') acc.income += amt
-        else acc.expense += amt
+        else if (t.type === 'expense') acc.expense += amt
       }
 
       if (year < minYear || (year === minYear && monthIndex < minMonthIndex)) {
@@ -123,18 +125,23 @@ export function FinancialCharts({ transactions }: FinancialChartsProps) {
   const getCategoryData = () => {
     const categoryData: { [key: string]: { income: number; expense: number } } = {}
     
-    transactions.forEach(transaction => {
-      const amt = Number((transaction as any).amount)
-      if (!isFinite(amt)) return
-      if (!categoryData[transaction.category]) {
-        categoryData[transaction.category] = { income: 0, expense: 0 }
-      }
-      if (transaction.type === 'income') {
-        categoryData[transaction.category].income += amt
-      } else {
-        categoryData[transaction.category].expense += amt
-      }
-    })
+    if (transactions && Array.isArray(transactions)) {
+      transactions.forEach(transaction => {
+        if (!transaction || !transaction.category || transaction.amount === undefined) return
+        
+        const amt = Number(transaction.amount)
+        if (!isFinite(amt) || amt <= 0) return
+        
+        if (!categoryData[transaction.category]) {
+          categoryData[transaction.category] = { income: 0, expense: 0 }
+        }
+        if (transaction.type === 'income') {
+          categoryData[transaction.category].income += amt
+        } else if (transaction.type === 'expense') {
+          categoryData[transaction.category].expense += amt
+        }
+      })
+    }
     
     return Object.entries(categoryData).map(([category, data]) => ({
       category,

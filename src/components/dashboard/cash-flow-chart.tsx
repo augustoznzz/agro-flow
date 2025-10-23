@@ -49,23 +49,27 @@ export function CashFlowChart() {
     }
 
     // Aggregate transactions by month
-    transactions.forEach(transaction => {
-      const { year: transactionYear, month: transactionMonth } = parseDate(transaction.date)
-      const amount = Number((transaction as any).amount)
+    if (transactions && Array.isArray(transactions)) {
+      transactions.forEach(transaction => {
+        if (transaction && transaction.date && transaction.amount !== undefined) {
+          const { year: transactionYear, month: transactionMonth } = parseDate(transaction.date)
+          const amount = Number(transaction.amount)
 
-      // Find the corresponding month in our array
-      const monthData = last12Months.find(
-        m => m.year === transactionYear && m.monthIndex === transactionMonth
-      )
+          // Find the corresponding month in our array
+          const monthData = last12Months.find(
+            m => m.year === transactionYear && m.monthIndex === transactionMonth
+          )
 
-      if (monthData && isFinite(amount)) {
-        if (transaction.type === 'income') {
-          monthData.receitas += amount
-        } else {
-          monthData.despesas += amount
+          if (monthData && isFinite(amount) && amount > 0) {
+            if (transaction.type === 'income') {
+              monthData.receitas += amount
+            } else if (transaction.type === 'expense') {
+              monthData.despesas += amount
+            }
+          }
         }
-      }
-    })
+      })
+    }
 
     // Return only month name and values for the chart
     return last12Months.map(({ month, receitas, despesas }) => ({
