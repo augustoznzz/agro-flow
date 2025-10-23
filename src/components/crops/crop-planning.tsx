@@ -226,17 +226,9 @@ export function CropPlanning() {
                   <span className={`font-medium ${
                     crop.estimatedRevenue - crop.estimatedCost > 0 ? 'text-green-600' : 'text-red-600'
                   }`}>
-                    R$ {(crop.estimatedRevenue - crop.estimatedCost).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                    R$ {(crop.estimatedRevenue - crop.estimatedCost).toLocaleString('pt-BR')}
                   </span>
                 </div>
-              </div>
-              <div className="flex justify-end gap-2 pt-3">
-                <Button variant="outline" onClick={() => openEdit(crop)}>
-                  Editar
-                </Button>
-                <Button variant="destructive" onClick={() => confirmDelete(crop)}>
-                  Excluir
-                </Button>
               </div>
             </CardContent>
           </Card>
