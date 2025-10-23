@@ -82,6 +82,9 @@ export function FinancialCharts({ transactions }: FinancialChartsProps) {
       if (m >= 12) { m = 0; y++ }
     }
 
+    if (typeof window !== 'undefined') {
+      console.log('[FinancialCharts] transactions:', transactions.length, 'monthlyData:', result)
+    }
     return result
   }
 
@@ -132,6 +135,10 @@ export function FinancialCharts({ transactions }: FinancialChartsProps) {
   const categoryData = getCategoryData()
   const rawMax = monthlyData.length ? Math.max(...monthlyData.map(d => Math.max(Number(d.income) || 0, Number(d.expense) || 0))) : 0
   const yMax = getNiceMax(rawMax <= 0 ? 1 : rawMax)
+
+  if (typeof window !== 'undefined') {
+    console.log('[FinancialCharts] monthlyData.length:', monthlyData.length, 'rawMax:', rawMax, 'yMax:', yMax)
+  }
 
   // Cores para categorias
   const categoryColors = [
