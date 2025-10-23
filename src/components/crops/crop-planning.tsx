@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Plus, Calendar, DollarSign } from 'lucide-react'
+import { Modal } from '@/components/ui/modal'
 import { useData, CropCycle } from '@/contexts/data-context'
 
 export function CropPlanning() {
@@ -76,13 +77,8 @@ export function CropPlanning() {
         </Button>
       </div>
 
-      {showForm && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Adicionar Nova Safra</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <Modal open={showForm} onClose={() => setShowForm(false)} title="Adicionar Nova Safra" size="lg">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="text-sm font-medium">Tipo de Cultura</label>
                 <Input
@@ -126,15 +122,16 @@ export function CropPlanning() {
                   onChange={(e) => setNewCrop({...newCrop, estimatedRevenue: e.target.value})}
                 />
               </div>
-              <div className="flex items-end">
-                <Button onClick={handleAddCrop} className="w-full">
+              <div className="flex items-end gap-2 md:col-span-2 justify-end">
+                <Button variant="outline" onClick={() => setShowForm(false)}>
+                  Cancelar
+                </Button>
+                <Button onClick={handleAddCrop}>
                   Adicionar Safra
                 </Button>
               </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+        </div>
+      </Modal>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {crops.map((crop) => (

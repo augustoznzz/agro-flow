@@ -5,6 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Plus, MapPin, Edit, Trash2 } from 'lucide-react'
+import { Modal } from '@/components/ui/modal'
 import { useData } from '@/contexts/data-context'
 
 interface Property {
@@ -117,15 +118,13 @@ export function PropertyManagement() {
         </Card>
       </div>
 
-      {showForm && (
-        <Card>
-          <CardHeader>
-            <CardTitle>
-              {editingProperty ? 'Editar Propriedade' : 'Adicionar Nova Propriedade'}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <Modal 
+        open={showForm} 
+        onClose={() => { setShowForm(false); setEditingProperty(null) }} 
+        title={editingProperty ? 'Editar Propriedade' : 'Adicionar Nova Propriedade'}
+        size="lg"
+      >
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label className="text-sm font-medium">Nome da Propriedade</label>
                 <Input
@@ -159,27 +158,21 @@ export function PropertyManagement() {
                   onChange={(e) => setNewProperty({...newProperty, description: e.target.value})}
                 />
               </div>
-              <div className="flex items-end space-x-2 md:col-span-2">
-                <Button 
-                  onClick={editingProperty ? handleUpdateProperty : handleAddProperty} 
-                  className="flex-1"
-                >
-                  {editingProperty ? 'Atualizar' : 'Adicionar'} Propriedade
-                </Button>
+              <div className="flex items-end gap-2 md:col-span-2 justify-end">
                 <Button 
                   variant="outline" 
-                  onClick={() => {
-                    setShowForm(false)
-                    setEditingProperty(null)
-                  }}
+                  onClick={() => { setShowForm(false); setEditingProperty(null) }}
                 >
                   Cancelar
                 </Button>
+                <Button 
+                  onClick={editingProperty ? handleUpdateProperty : handleAddProperty}
+                >
+                  {editingProperty ? 'Atualizar' : 'Adicionar'} Propriedade
+                </Button>
               </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+        </div>
+      </Modal>
 
       {/* Lista de Propriedades */}
       <div className="grid gap-4 md:grid-cols-2">

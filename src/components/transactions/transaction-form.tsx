@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Plus, Minus } from 'lucide-react'
 import { FinancialCharts } from '@/components/dashboard/financial-charts'
+import { Modal } from '@/components/ui/modal'
 import { useData, Transaction } from '@/contexts/data-context'
 
 export function TransactionForm() {
@@ -121,13 +122,8 @@ export function TransactionForm() {
       {/* Gráficos Financeiros */}
       <FinancialCharts transactions={transactions} />
 
-      {showForm && (
-        <Card>
-          <CardHeader>
-            <CardTitle>Adicionar Nova Transação</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-6">
+      <Modal open={showForm} onClose={() => setShowForm(false)} title="Adicionar Nova Transação" size="xl">
+        <div className="space-y-6">
               {/* Informações Básicas */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
@@ -256,15 +252,16 @@ export function TransactionForm() {
               </div>
 
               {/* Botão de Ação */}
-              <div className="flex justify-end">
+              <div className="flex justify-end gap-2">
+                <Button variant="outline" onClick={() => setShowForm(false)} className="w-full sm:w-auto">
+                  Cancelar
+                </Button>
                 <Button onClick={handleAddTransaction} className="px-8 w-full sm:w-auto">
                   Adicionar Transação
                 </Button>
               </div>
             </div>
-          </CardContent>
-        </Card>
-      )}
+      </Modal>
 
       {/* Lista de Transações */}
       <Card>
