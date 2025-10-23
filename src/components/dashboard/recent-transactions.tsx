@@ -8,8 +8,22 @@ import { useMemo } from 'react'
 export function RecentTransactions() {
   const { transactions } = useData()
   const recent = useMemo(() => {
+    // Helper para parsear data corretamente (sem timezone ambiguidade)
+    const parseDate = (dateStr: string): number => {
+      // Se for string ISO, converte para timestamp
+      if (typeof dateStr === 'string' && /^\d{4}-\d{2}-\d{2}/.test(dateStr)) {
+        const parts = dateStr.split('-')
+        const year = Number(parts[0])
+        const month = Number(parts[1]) - 1
+        const day = Number(parts[2])
+        return new Date(year, month, day).getTime()
+      }
+      // Fallback: parse normal
+      return new Date(dateStr).getTime()
+    }
+
     return [...transactions]
-      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+      .sort((a, b) => parseDate(b.date) - parseDate(a.date))
       .slice(0, 5)
   }, [transactions])
   return (

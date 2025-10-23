@@ -30,11 +30,27 @@ export function CashFlowChart() {
       })
     }
 
+    // Helper para parsear data corretamente (sem timezone ambiguidade)
+    const parseDate = (dateStr: string): { year: number; month: number } => {
+      // Se for string ISO, extrai ano e mês sem interpretar timezone
+      if (typeof dateStr === 'string' && /^\d{4}-\d{2}-\d{2}/.test(dateStr)) {
+        const parts = dateStr.split('-')
+        return {
+          year: Number(parts[0]),
+          month: Number(parts[1]) - 1 // 0-indexed
+        }
+      }
+      // Fallback: criar Date normalmente
+      const d = new Date(dateStr)
+      return {
+        year: d.getFullYear(),
+        month: d.getMonth()
+      }
+    }
+
     // Aggregate transactions by month
     transactions.forEach(transaction => {
-      const transactionDate = new Date(transaction.date)
-      const transactionYear = transactionDate.getFullYear()
-      const transactionMonth = transactionDate.getMonth()
+      const { year: transactionYear, month: transactionMonth } = parseDate(transaction.date)
       const amount = Number((transaction as any).amount)
 
       // Find the corresponding month in our array

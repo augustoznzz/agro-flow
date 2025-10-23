@@ -51,6 +51,24 @@ export function DashboardMetrics() {
     const currentYear = now.getFullYear()
     const currentMonth = now.getMonth()
 
+    // Helper para parsear data corretamente (sem timezone ambiguidade)
+    const parseDate = (dateStr: string): { year: number; month: number } => {
+      // Se for string ISO, extrai ano e mês sem interpretar timezone
+      if (typeof dateStr === 'string' && /^\d{4}-\d{2}-\d{2}/.test(dateStr)) {
+        const parts = dateStr.split('-')
+        return {
+          year: Number(parts[0]),
+          month: Number(parts[1]) - 1 // 0-indexed
+        }
+      }
+      // Fallback: criar Date normalmente
+      const d = new Date(dateStr)
+      return {
+        year: d.getFullYear(),
+        month: d.getMonth()
+      }
+    }
+
     let incomeSum = 0
     let expenseSum = 0
     let monthIncome = 0
@@ -62,8 +80,8 @@ export function DashboardMetrics() {
       } else {
         expenseSum += t.amount
       }
-      const d = new Date(t.date)
-      if (d.getFullYear() === currentYear && d.getMonth() === currentMonth) {
+      const { year, month } = parseDate(t.date)
+      if (year === currentYear && month === currentMonth) {
         if (t.type === 'income') monthIncome += t.amount
         else monthExpenses += t.amount
       }

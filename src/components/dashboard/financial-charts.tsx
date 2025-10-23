@@ -28,6 +28,24 @@ export function FinancialCharts({ transactions }: FinancialChartsProps) {
   const getMonthlyData = () => {
     if (!transactions || transactions.length === 0) return [] as Array<{ month: string; income: number; expense: number; balance: number; year: number; monthIndex: number }>
 
+    // Helper para parsear data corretamente (sem timezone ambiguidade)
+    const parseDate = (dateStr: string): { year: number; month: number } => {
+      // Se for string ISO, extrai ano e mês sem interpretar timezone
+      if (typeof dateStr === 'string' && /^\d{4}-\d{2}-\d{2}/.test(dateStr)) {
+        const parts = dateStr.split('-')
+        return {
+          year: Number(parts[0]),
+          month: Number(parts[1]) - 1 // 0-indexed
+        }
+      }
+      // Fallback: criar Date normalmente
+      const d = new Date(dateStr)
+      return {
+        year: d.getFullYear(),
+        month: d.getMonth()
+      }
+    }
+
     const monthMap = new Map<string, { income: number; expense: number; year: number; monthIndex: number }>()
 
     let minYear = Infinity
@@ -36,9 +54,7 @@ export function FinancialCharts({ transactions }: FinancialChartsProps) {
     let maxMonthIndex = 0
 
     for (const t of transactions) {
-      const d = new Date(t.date)
-      const year = d.getFullYear()
-      const monthIndex = d.getMonth()
+      const { year, month: monthIndex } = parseDate(t.date)
       const key = `${year}-${String(monthIndex + 1).padStart(2, '0')}`
 
       if (!monthMap.has(key)) {
@@ -82,9 +98,6 @@ export function FinancialCharts({ transactions }: FinancialChartsProps) {
       if (m >= 12) { m = 0; y++ }
     }
 
-    if (typeof window !== 'undefined') {
-      console.log('[FinancialCharts] transactions:', transactions.length, 'monthlyData:', result)
-    }
     return result
   }
 
@@ -135,10 +148,6 @@ export function FinancialCharts({ transactions }: FinancialChartsProps) {
   const categoryData = getCategoryData()
   const rawMax = monthlyData.length ? Math.max(...monthlyData.map(d => Math.max(Number(d.income) || 0, Number(d.expense) || 0))) : 0
   const yMax = getNiceMax(rawMax <= 0 ? 1 : rawMax)
-
-  if (typeof window !== 'undefined') {
-    console.log('[FinancialCharts] monthlyData.length:', monthlyData.length, 'rawMax:', rawMax, 'yMax:', yMax)
-  }
 
   // Cores para categorias
   const categoryColors = [
