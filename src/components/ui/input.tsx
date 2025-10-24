@@ -8,7 +8,7 @@ export interface InputProps
 }
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>((
-  { className, type, onChange, ...props },
+  { className, type, onChange, size, width, ...props },
   ref
 ) => {
   // Keep a local ref so we can call showPicker()/click() reliably

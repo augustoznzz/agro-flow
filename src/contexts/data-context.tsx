@@ -352,7 +352,19 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   const addTransaction = (transaction: Omit<Transaction, 'id' | 'user_id' | 'created_at'>) => {
     const newTransaction: Transaction = {
-      ...transaction,
+      type: transaction.type,
+      category: transaction.category,
+      description: transaction.description,
+      amount: transaction.amount,
+      date: transaction.date,
+      property_id: transaction.property_id,
+      crop_cycle_id: transaction.crop_cycle_id,
+      notes: transaction.notes,
+      status: transaction.status,
+      project: transaction.project,
+      client: transaction.client,
+      isRecurring: transaction.isRecurring,
+      recurrenceType: transaction.recurrenceType,
       id: Date.now().toString(),
       user_id: 'user-1',
       created_at: new Date().toISOString()
