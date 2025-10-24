@@ -7,6 +7,7 @@ import { LoginForm } from '@/components/auth/login-form'
 import { Navigation } from '@/components/layout/navigation'
 import { DashboardMetrics } from '@/components/dashboard/metrics-card'
 import { CashFlowChart } from '@/components/dashboard/cash-flow-chart'
+import { MonthlyFinancialChart } from '@/components/dashboard/monthly-financial-chart'
 import { RecentTransactions } from '@/components/dashboard/recent-transactions'
 import { CropPlanningAuto } from '@/components/crops/crop-planning-auto'
 import { TransactionFormAuto } from '@/components/transactions/transaction-form-auto'
@@ -60,6 +61,12 @@ function MainApp() {
           <div className="space-y-6">
             <h1 className="text-2xl sm:text-3xl font-bold">Dashboard</h1>
             <DashboardMetrics />
+            
+            {/* Gráfico de Análise Financeira Mensal */}
+            <ErrorBoundary>
+              <MonthlyFinancialChart />
+            </ErrorBoundary>
+            
             <div className="grid gap-4 lg:grid-cols-3">
               <div className="lg:col-span-2">
                 <ErrorBoundary>

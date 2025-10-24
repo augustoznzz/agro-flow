@@ -61,6 +61,19 @@ export function DataProvider({ children }: { children: ReactNode }) {
     ;(async () => {
       try {
         // Dados de exemplo - usados apenas na primeira vez
+        const now = new Date()
+        const currentYear = now.getFullYear()
+        const currentMonth = now.getMonth() + 1 // Mês atual (1-12)
+        const currentDate = now.getDate()
+        
+        // Gera datas para o mês atual e anterior
+        const getDateString = (monthOffset: number, day: number) => {
+          const targetMonth = currentMonth + monthOffset
+          const targetYear = targetMonth <= 0 ? currentYear - 1 : currentYear
+          const finalMonth = targetMonth <= 0 ? 12 + targetMonth : targetMonth
+          return `${targetYear}-${String(finalMonth).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+        }
+        
         const defaultTransactions: Transaction[] = [
           {
             id: '1',
@@ -69,8 +82,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
             amount: 15000,
             type: 'income',
             category: 'Vendas',
-            date: '2024-01-15',
-            created_at: '2024-01-15T10:00:00Z'
+            date: getDateString(0, currentDate),
+            created_at: new Date().toISOString()
           },
           {
             id: '2',
@@ -79,8 +92,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
             amount: 3200,
             type: 'expense',
             category: 'Insumos',
-            date: '2024-01-14',
-            created_at: '2024-01-14T10:00:00Z'
+            date: getDateString(0, Math.max(1, currentDate - 1)),
+            created_at: new Date().toISOString()
           },
           {
             id: '3',
@@ -89,8 +102,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
             amount: 8500,
             type: 'income',
             category: 'Vendas',
-            date: '2024-01-20',
-            created_at: '2024-01-20T10:00:00Z'
+            date: getDateString(0, Math.max(1, currentDate - 2)),
+            created_at: new Date().toISOString()
           },
           {
             id: '4',
@@ -99,8 +112,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
             amount: 1800,
             type: 'expense',
             category: 'Mão de Obra',
-            date: '2024-01-18',
-            created_at: '2024-01-18T10:00:00Z'
+            date: getDateString(0, Math.max(1, currentDate - 3)),
+            created_at: new Date().toISOString()
           },
           {
             id: '5',
@@ -109,8 +122,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
             amount: 12000,
             type: 'income',
             category: 'Vendas',
-            date: '2024-02-05',
-            created_at: '2024-02-05T10:00:00Z'
+            date: getDateString(-1, 5),
+            created_at: new Date().toISOString()
           },
           {
             id: '6',
@@ -119,8 +132,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
             amount: 2500,
             type: 'expense',
             category: 'Insumos',
-            date: '2024-02-03',
-            created_at: '2024-02-03T10:00:00Z'
+            date: getDateString(-1, 3),
+            created_at: new Date().toISOString()
           },
           {
             id: '7',
@@ -129,8 +142,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
             amount: 1200,
             type: 'expense',
             category: 'Combustível',
-            date: '2024-02-08',
-            created_at: '2024-02-08T10:00:00Z'
+            date: getDateString(-1, 8),
+            created_at: new Date().toISOString()
           },
           {
             id: '8',
@@ -139,8 +152,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
             amount: 6800,
             type: 'income',
             category: 'Vendas',
-            date: '2024-02-15',
-            created_at: '2024-02-15T10:00:00Z'
+            date: getDateString(-1, 15),
+            created_at: new Date().toISOString()
           },
           {
             id: '9',
@@ -149,8 +162,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
             amount: 4200,
             type: 'expense',
             category: 'Insumos',
-            date: '2024-02-12',
-            created_at: '2024-02-12T10:00:00Z'
+            date: getDateString(-1, 12),
+            created_at: new Date().toISOString()
           },
           {
             id: '10',
@@ -159,8 +172,8 @@ export function DataProvider({ children }: { children: ReactNode }) {
             amount: 9500,
             type: 'income',
             category: 'Vendas',
-            date: '2024-03-02',
-            created_at: '2024-03-02T10:00:00Z'
+            date: getDateString(-2, 2),
+            created_at: new Date().toISOString()
           }
         ]
 
