@@ -370,7 +370,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       created_at: new Date().toISOString()
     }
     setTransactions(prev => [...prev, newTransaction])
-    enqueue({ entity: 'transactions', action: 'create', payload: newTransaction })
+    enqueue({ entity: 'transactions', action: 'create', payload: newTransaction as unknown as Record<string, unknown> })
   }
 
   const updateTransaction = (id: string, transaction: Partial<Transaction>) => {
@@ -405,7 +405,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       id: Date.now().toString()
     }
     setCrops(prev => [...prev, newCrop])
-    enqueue({ entity: 'crops', action: 'create', payload: newCrop })
+    enqueue({ entity: 'crops', action: 'create', payload: newCrop as unknown as Record<string, unknown> })
   }
 
   const updateCrop = (id: string, crop: Partial<CropCycle>) => {
@@ -437,7 +437,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const addProperty = (property: Omit<PropertyItem, 'id'>) => {
     const newProperty: PropertyItem = { ...property, id: Date.now().toString() }
     setProperties(prev => [...prev, newProperty])
-    enqueue({ entity: 'properties', action: 'create', payload: newProperty })
+    enqueue({ entity: 'properties', action: 'create', payload: newProperty as unknown as Record<string, unknown> })
   }
 
   const updateProperty = (id: string, property: Partial<PropertyItem>) => {
