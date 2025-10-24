@@ -4,6 +4,7 @@ import { cn } from "@/lib/utils"
 export interface InputProps
   extends Omit<React.InputHTMLAttributes<HTMLInputElement>, 'size'> {
   size?: 'sm' | 'md' | 'lg'
+  width?: string | number
 }
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>((
@@ -153,7 +154,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>((
         )}
         ref={setRefs}
         placeholder="DD-MM-AAAA"
-        value={formatDateDisplay(rawValue)}
+        value={formatDateDisplay(String(rawValue))}
         onChange={handleMaskedDateChange}
         onKeyDown={handleMaskedDateKeyDown}
         {...props}

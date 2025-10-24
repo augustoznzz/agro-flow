@@ -14,6 +14,14 @@ export interface Property {
   created_at: string
 }
 
+export interface PropertyItem {
+  id: string
+  name: string
+  area_hectares: number
+  location: string
+  [key: string]: unknown
+}
+
 export interface CropCycle {
   id: string
   property_id: string
@@ -25,6 +33,7 @@ export interface CropCycle {
   estimated_revenue: number
   status: 'planning' | 'planted' | 'harvested'
   created_at: string
+  [key: string]: unknown
 }
 
 export interface Transaction {
@@ -45,6 +54,7 @@ export interface Transaction {
   client?: string
   isRecurring?: boolean
   recurrenceType?: 'monthly' | 'yearly' | 'weekly'
+  [key: string]: unknown
 }
 
 export interface DashboardMetrics {
