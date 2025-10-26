@@ -61,8 +61,18 @@ function CashFlowChartContent() {
       })
     }
 
-    // Helper para parsear data
+    // Helper para parsear data (suporta DD-MM-AAAA e YYYY-MM-DD)
     const parseDate = (dateStr: string): { year: number; month: number } => {
+      // Formato DD-MM-AAAA (novo formato brasileiro)
+      if (typeof dateStr === 'string' && /^\d{2}-\d{2}-\d{4}/.test(dateStr)) {
+        const parts = dateStr.split('-')
+        return {
+          year: Number(parts[2]),
+          month: Number(parts[1]) - 1
+        }
+      }
+      
+      // Formato YYYY-MM-DD (compatibilidade)
       if (typeof dateStr === 'string' && /^\d{4}-\d{2}-\d{2}/.test(dateStr)) {
         const parts = dateStr.split('-')
         return {
@@ -70,6 +80,7 @@ function CashFlowChartContent() {
           month: Number(parts[1]) - 1
         }
       }
+      
       const d = new Date(dateStr)
       return {
         year: d.getFullYear(),
