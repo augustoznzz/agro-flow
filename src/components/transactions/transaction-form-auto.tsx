@@ -71,7 +71,7 @@ export function TransactionFormAuto() {
     amount: '',
     type: 'income' as 'income' | 'expense',
     category: '',
-    date: getCurrentDateString(), // Inicializa com data atual para evitar problemas de hidratação
+    date: '', // Inicia vazio para SSR e hidratação no cliente
     notes: '',
     status: 'completed' as 'pending' | 'completed' | 'cancelled',
     project: '',
@@ -85,7 +85,11 @@ export function TransactionFormAuto() {
   
   useEffect(() => {
     setIsClient(true)
-    // Não precisa fazer nada aqui já que o estado inicial já tem a data
+    // Popula a data atual somente no cliente
+    setFormData(prev => ({
+      ...prev,
+      date: prev.date || getCurrentDateString()
+    }))
   }, [])
 
   // Auto-save quando editando uma transação existente
@@ -341,7 +345,7 @@ export function TransactionFormAuto() {
               <label className="text-sm font-medium">Data</label>
               <Input
                 type="date"
-                value={convertToInputFormat(formData.date)}
+                value={isClient ? convertToInputFormat(formData.date) : ''}
                 onChange={(e) => setFormData({...formData, date: convertToStorageFormat(e.target.value)})}
                 className="w-full sm:w-48"
               />
