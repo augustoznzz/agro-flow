@@ -180,3 +180,30 @@ input.af-date[type="date"]::-webkit-clear-button {
 }
 
 /* Remover setas/clear quando necessário, escopado ao nosso input */
+
+/* Blur effect for mobile menu */
+.mobile-menu-open main {
+  filter: blur(2px);
+  transition: filter 0.2s ease-in-out;
+}
+
+/* Ensure main content is not blurred when menu is closed */
+main {
+  filter: none;
+  transition: filter 0.2s ease-in-out;
+}
+
+/* Prevent body scroll when mobile menu is open */
+.mobile-menu-open {
+  overflow: hidden;
+}
+
+@media (min-width: 1024px) {
+  .mobile-menu-open main {
+    filter: none;
+  }
+  
+  .mobile-menu-open {
+    overflow: auto;
+  }
+}

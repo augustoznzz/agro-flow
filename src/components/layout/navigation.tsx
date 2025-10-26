@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { 
   Home, 
@@ -23,6 +23,20 @@ interface NavigationProps {
 
 export function Navigation({ activeTab, onTabChange }: NavigationProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+
+  // Adicionar classe ao body para controlar o blur
+  useEffect(() => {
+    if (isMobileMenuOpen) {
+      document.body.classList.add('mobile-menu-open')
+    } else {
+      document.body.classList.remove('mobile-menu-open')
+    }
+    
+    // Cleanup on unmount
+    return () => {
+      document.body.classList.remove('mobile-menu-open')
+    }
+  }, [isMobileMenuOpen])
 
   const handleSignOut = async () => {
     await supabase.auth.signOut()
@@ -114,10 +128,10 @@ export function Navigation({ activeTab, onTabChange }: NavigationProps) {
         </div>
       </nav>
 
-      {/* Overlay for mobile */}
+      {/* Invisible overlay for mobile - allows clicking outside to close menu */}
       {isMobileMenuOpen && (
         <div
-          className="fixed inset-0 z-30 bg-black bg-opacity-50 lg:hidden mt-16"
+          className="fixed inset-0 z-30 lg:hidden mt-16"
           onClick={() => setIsMobileMenuOpen(false)}
         />
       )}
