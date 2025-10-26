@@ -78,13 +78,18 @@ export function Modal({
       initialFocusRef.current.focus()
     }
 
-    // Prevent background scroll
+    // Prevent background scroll and add modal state
     const originalOverflow = document.body.style.overflow
+    const originalHeight = document.body.style.height
     document.body.style.overflow = 'hidden'
+    document.body.style.height = '100vh'
+    document.body.setAttribute('data-modal-open', 'true')
 
     return () => {
       document.removeEventListener('keydown', handleKeyDown)
       document.body.style.overflow = originalOverflow
+      document.body.style.height = originalHeight
+      document.body.removeAttribute('data-modal-open')
       previouslyFocused?.focus?.()
     }
   }, [open, initialFocusRef])
@@ -94,15 +99,15 @@ export function Modal({
   const maxWidth = sizeToMaxWidth[size]
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center">
-      <div className="absolute inset-0 bg-black/50" onClick={onClose} aria-hidden="true"></div>
+    <div className="fixed inset-0 z-[100] flex items-center justify-center">
+      <div className="modal-backdrop" onClick={onClose} aria-hidden="true"></div>
       <div
         ref={containerRef}
         role="dialog"
         aria-modal="true"
         aria-labelledby={title ? 'modal-title' : undefined}
         aria-describedby={description ? 'modal-description' : undefined}
-        className={`relative z-10 w-full ${maxWidth} rounded-lg border bg-background p-0 shadow-lg`}
+        className={`relative z-10 w-full ${maxWidth} rounded-lg border bg-background p-0 shadow-lg max-h-[90vh] overflow-y-auto`}
       >
         {(title || description) && (
           <div className="px-6 pt-5 pb-2">

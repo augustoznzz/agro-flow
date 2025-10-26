@@ -10,6 +10,7 @@ import { Modal } from '@/components/ui/modal'
 import { AutoSaveIndicator } from '@/components/ui/auto-save-indicator'
 import { useData } from '@/contexts/data-context'
 import { useAutoSave } from '@/hooks/use-auto-save'
+import { TRANSACTION_CATEGORIES } from '@/lib/utils'
 import type { Transaction } from '@/types'
 
 export function TransactionFormAuto() {
@@ -255,11 +256,16 @@ export function TransactionFormAuto() {
             </div>
             <div>
               <label className="text-sm font-medium">Categoria</label>
-              <Input
-                placeholder="Ex: Vendas, Insumos, Mão de obra"
+              <select
+                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 value={formData.category}
                 onChange={(e) => setFormData({...formData, category: e.target.value})}
-              />
+              >
+                <option value="">Selecione uma categoria</option>
+                {TRANSACTION_CATEGORIES.map(category => (
+                  <option key={category} value={category}>{category}</option>
+                ))}
+              </select>
             </div>
             <div className="md:col-span-1">
               <label className="text-sm font-medium">Data</label>

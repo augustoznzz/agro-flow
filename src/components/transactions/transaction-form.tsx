@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input'
 import { Plus, Minus } from 'lucide-react'
 import { FinancialCharts } from '@/components/dashboard/financial-charts'
 import { Modal } from '@/components/ui/modal'
+import { TRANSACTION_CATEGORIES } from '@/lib/utils'
 import { useData } from '@/contexts/data-context'
 
 export function TransactionForm() {
@@ -168,11 +169,16 @@ export function TransactionForm() {
                 </div>
                 <div>
                   <label className="text-sm font-medium">Categoria</label>
-                  <Input
-                    placeholder="Ex: Vendas, Insumos, Mão de obra"
+                  <select
+                    className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                     value={newTransaction.category}
                     onChange={(e) => setNewTransaction({...newTransaction, category: e.target.value})}
-                  />
+                  >
+                    <option value="">Selecione uma categoria</option>
+                    {TRANSACTION_CATEGORIES.map(category => (
+                      <option key={category} value={category}>{category}</option>
+                    ))}
+                  </select>
                 </div>
                 <div className="md:col-span-1">
                   <label className="text-sm font-medium">Data</label>
@@ -200,7 +206,7 @@ export function TransactionForm() {
               {/* Detalhes Adicionais */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="text-sm font-medium">Projeto/Cliente</label>
+                  <label className="text-sm font-medium">Projeto</label>
                   <Input
                     placeholder="Ex: Projeto Soja 2024, Cliente ABC"
                     value={newTransaction.project}

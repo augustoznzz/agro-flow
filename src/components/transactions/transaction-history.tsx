@@ -19,6 +19,7 @@ import {
   Save,
   XCircle
 } from 'lucide-react'
+import { TRANSACTION_CATEGORIES } from '@/lib/utils'
 import { Transaction } from '@/types'
 
 interface TransactionHistoryProps {
@@ -52,8 +53,9 @@ export function TransactionHistory({
   const [deleteAllConfirmText, setDeleteAllConfirmText] = useState('')
   const [showDeleteAllMessage, setShowDeleteAllMessage] = useState(false)
 
-  // Get unique categories for filter
-  const categories = Array.from(new Set(transactions.map(t => t.category)))
+  // Get categories - combine predefined categories with any existing categories from transactions
+  const existingCategories = Array.from(new Set(transactions.map(t => t.category).filter(Boolean)))
+  const allCategories = Array.from(new Set([...TRANSACTION_CATEGORIES, ...existingCategories]))
 
   // Filter transactions
   const filteredTransactions = transactions.filter(transaction => {
@@ -245,7 +247,7 @@ export function TransactionHistory({
               className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               <option value="">Todas as categorias</option>
-              {categories.map(category => (
+              {allCategories.map(category => (
                 <option key={category} value={category}>{category}</option>
               ))}
             </select>
@@ -329,12 +331,16 @@ export function TransactionHistory({
                       </div>
                       <div>
                         <label className="text-sm font-medium">Categoria</label>
-                        <Input
+                        <select
                           value={editForm.category}
                           onChange={(e) => setEditForm({...editForm, category: e.target.value})}
-                          placeholder="Categoria"
-                          className={formErrors.category ? 'border-red-500' : ''}
-                        />
+                          className={`w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 ${formErrors.category ? 'border-red-500' : ''}`}
+                        >
+                          <option value="">Selecione uma categoria</option>
+                          {allCategories.map(category => (
+                            <option key={category} value={category}>{category}</option>
+                          ))}
+                        </select>
                         {formErrors.category && (
                           <p className="text-red-500 text-xs mt-1 flex items-center gap-1">
                             <AlertCircle className="h-3 w-3" />
@@ -493,8 +499,8 @@ export function TransactionHistory({
 
       {/* Delete All Modal */}
       {showDeleteAllModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/50" onClick={() => setShowDeleteAllModal(false)}></div>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center">
+          <div className="modal-backdrop" onClick={() => setShowDeleteAllModal(false)}></div>
           <div className="relative z-10 w-full max-w-md rounded-lg border bg-background p-6 shadow-lg">
             <h2 className="text-xl font-semibold mb-2 flex items-center gap-2">
               <Trash2 className="h-5 w-5 text-red-600" />
