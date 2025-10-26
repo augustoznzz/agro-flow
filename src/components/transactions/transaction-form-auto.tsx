@@ -29,13 +29,8 @@ export function TransactionFormAuto() {
 
   // Função para converter DD-MM-AAAA para YYYY-MM-DD (para input date HTML)
   const convertToInputFormat = (ddmmyyyy: string): string => {
-    if (!ddmmyyyy || ddmmyyyy.length !== 10) {
-      // Se não há data, usa a data atual no formato YYYY-MM-DD para o input
-      const now = new Date()
-      const year = now.getFullYear()
-      const month = String(now.getMonth() + 1).padStart(2, '0')
-      const day = String(now.getDate()).padStart(2, '0')
-      return `${year}-${month}-${day}`
+    if (!ddmmyyyy || ddmmyyyy.trim() === '') {
+      return ''
     }
     
     // Se já está no formato YYYY-MM-DD, retorna como está
@@ -47,17 +42,14 @@ export function TransactionFormAuto() {
       return `${year}-${month}-${day}`
     }
     
-    // Fallback para data atual
-    const now = new Date()
-    const year = now.getFullYear()
-    const month = String(now.getMonth() + 1).padStart(2, '0')
-    const day = String(now.getDate()).padStart(2, '0')
-    return `${year}-${month}-${day}`
+    // Se não reconhece o formato, retorna vazio para o input lidar
+    return ''
   }
 
   // Função para converter YYYY-MM-DD (input) para DD-MM-AAAA (armazenamento)
   const convertToStorageFormat = (yyyymmdd: string): string => {
-    if (!yyyymmdd || yyyymmdd.length !== 10) return getCurrentDateString()
+    // Se está vazio ou inválido, usa a data atual
+    if (!yyyymmdd || yyyymmdd.trim() === '') return getCurrentDateString()
     
     // Input HTML sempre retorna YYYY-MM-DD, então convertemos para DD-MM-AAAA
     if (yyyymmdd.match(/^\d{4}-\d{2}-\d{2}$/)) {
@@ -70,6 +62,7 @@ export function TransactionFormAuto() {
       return yyyymmdd
     }
     
+    // Se formato não reconhecido, usa a data atual
     return getCurrentDateString()
   }
 
@@ -78,7 +71,7 @@ export function TransactionFormAuto() {
     amount: '',
     type: 'income' as 'income' | 'expense',
     category: '',
-    date: '', // Será definido após mount para evitar hydration mismatch
+    date: getCurrentDateString(), // Inicializa com data atual para evitar problemas de hidratação
     notes: '',
     status: 'completed' as 'pending' | 'completed' | 'cancelled',
     project: '',
@@ -92,12 +85,7 @@ export function TransactionFormAuto() {
   
   useEffect(() => {
     setIsClient(true)
-    if (!formData.date) {
-      setFormData(prev => ({
-        ...prev,
-        date: getCurrentDateString()
-      }))
-    }
+    // Não precisa fazer nada aqui já que o estado inicial já tem a data
   }, [])
 
   // Auto-save quando editando uma transação existente
