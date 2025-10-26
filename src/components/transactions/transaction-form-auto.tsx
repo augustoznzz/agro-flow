@@ -287,7 +287,7 @@ export function TransactionFormAuto() {
           {/* Detalhes Adicionais */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="text-sm font-medium">Projeto/Cliente</label>
+              <label className="text-sm font-medium">Projeto</label>
               <Input
                 placeholder="Ex: Projeto Soja 2024, Cliente ABC"
                 value={formData.project}
