@@ -346,7 +346,7 @@ export function TransactionFormAuto() {
               <Input
                 type="date"
                 value={isClient ? convertToInputFormat(formData.date) : ''}
-                onChange={(e) => setFormData({...formData, date: convertToStorageFormat(e.target.value)})}
+                onChange={(e) => setFormData(prev => ({...prev, date: convertToStorageFormat(e.target.value)}))}
                 className="w-full sm:w-48"
               />
             </div>
