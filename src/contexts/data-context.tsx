@@ -351,12 +351,49 @@ export function DataProvider({ children }: { children: ReactNode }) {
   }, [])
 
   const addTransaction = (transaction: Omit<Transaction, 'id' | 'user_id' | 'created_at'>) => {
+    // Função auxiliar para garantir data válida no formato DD-MM-AAAA
+    const ensureValidDate = (dateString: string): string => {
+      if (!dateString || dateString.trim() === '') {
+        // Se não há data, usa a data atual no formato DD-MM-AAAA
+        const now = new Date()
+        const year = now.getFullYear()
+        const month = String(now.getMonth() + 1).padStart(2, '0')
+        const day = String(now.getDate()).padStart(2, '0')
+        return `${day}-${month}-${year}`
+      }
+      
+      // Se já está no formato DD-MM-AAAA, valida e retorna
+      if (dateString.match(/^\d{2}-\d{2}-\d{4}$/)) {
+        const [day, month, year] = dateString.split('-')
+        const testDate = new Date(Number(year), Number(month) - 1, Number(day))
+        if (!isNaN(testDate.getTime())) {
+          return dateString
+        }
+      }
+      
+      // Se está no formato YYYY-MM-DD, converte para DD-MM-AAAA
+      if (dateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
+        const [year, month, day] = dateString.split('-')
+        const testDate = new Date(Number(year), Number(month) - 1, Number(day))
+        if (!isNaN(testDate.getTime())) {
+          return `${day}-${month}-${year}`
+        }
+      }
+      
+      // Se a data é inválida, usa a data atual no formato DD-MM-AAAA
+      const now = new Date()
+      const year = now.getFullYear()
+      const month = String(now.getMonth() + 1).padStart(2, '0')
+      const day = String(now.getDate()).padStart(2, '0')
+      return `${day}-${month}-${year}`
+    }
+
     const newTransaction: Transaction = {
       type: transaction.type,
       category: transaction.category,
       description: transaction.description,
       amount: transaction.amount,
-      date: transaction.date,
+      date: ensureValidDate(transaction.date),
       property_id: transaction.property_id,
       crop_cycle_id: transaction.crop_cycle_id,
       notes: transaction.notes,
@@ -374,10 +411,54 @@ export function DataProvider({ children }: { children: ReactNode }) {
   }
 
   const updateTransaction = (id: string, transaction: Partial<Transaction>) => {
+    // Função auxiliar para garantir data válida no formato DD-MM-AAAA (reutilizada)
+    const ensureValidDate = (dateString: string | undefined): string | undefined => {
+      if (dateString === undefined) return undefined
+      
+      if (!dateString || dateString.trim() === '') {
+        // Se não há data, usa a data atual no formato DD-MM-AAAA
+        const now = new Date()
+        const year = now.getFullYear()
+        const month = String(now.getMonth() + 1).padStart(2, '0')
+        const day = String(now.getDate()).padStart(2, '0')
+        return `${day}-${month}-${year}`
+      }
+      
+      // Se já está no formato DD-MM-AAAA, valida e retorna
+      if (dateString.match(/^\d{2}-\d{2}-\d{4}$/)) {
+        const [day, month, year] = dateString.split('-')
+        const testDate = new Date(Number(year), Number(month) - 1, Number(day))
+        if (!isNaN(testDate.getTime())) {
+          return dateString
+        }
+      }
+      
+      // Se está no formato YYYY-MM-DD, converte para DD-MM-AAAA
+      if (dateString.match(/^\d{4}-\d{2}-\d{2}$/)) {
+        const [year, month, day] = dateString.split('-')
+        const testDate = new Date(Number(year), Number(month) - 1, Number(day))
+        if (!isNaN(testDate.getTime())) {
+          return `${day}-${month}-${year}`
+        }
+      }
+      
+      // Se a data é inválida, usa a data atual no formato DD-MM-AAAA
+      const now = new Date()
+      const year = now.getFullYear()
+      const month = String(now.getMonth() + 1).padStart(2, '0')
+      const day = String(now.getDate()).padStart(2, '0')
+      return `${day}-${month}-${year}`
+    }
+
+    // Se há uma data sendo atualizada, valida ela
+    const updatedTransaction = transaction.date !== undefined 
+      ? { ...transaction, date: ensureValidDate(transaction.date) }
+      : transaction
+
     setTransactions(prev => 
-      prev.map(t => t.id === id ? { ...t, ...transaction } : t)
+      prev.map(t => t.id === id ? { ...t, ...updatedTransaction } : t)
     )
-    enqueue({ entity: 'transactions', action: 'update', payload: { id, ...transaction } })
+    enqueue({ entity: 'transactions', action: 'update', payload: { id, ...updatedTransaction } })
   }
 
   const deleteTransaction = (id: string) => {

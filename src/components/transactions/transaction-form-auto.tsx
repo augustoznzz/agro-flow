@@ -18,12 +18,53 @@ export function TransactionFormAuto() {
 
   const [showForm, setShowForm] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
+  // Função para obter data atual no formato DD-MM-AAAA
+  const getCurrentDateString = () => {
+    const now = new Date()
+    const year = now.getFullYear()
+    const month = String(now.getMonth() + 1).padStart(2, '0')
+    const day = String(now.getDate()).padStart(2, '0')
+    return `${day}-${month}-${year}`
+  }
+
+  // Função para converter DD-MM-AAAA para YYYY-MM-DD (para input date)
+  const convertToInputFormat = (dateStr: string): string => {
+    if (!dateStr || dateStr.length !== 10) return ''
+    
+    // Se já está no formato YYYY-MM-DD, retorna como está
+    if (dateStr.match(/^\d{4}-\d{2}-\d{2}$/)) return dateStr
+    
+    // Se está no formato DD-MM-AAAA, converte para YYYY-MM-DD
+    if (dateStr.match(/^\d{2}-\d{2}-\d{4}$/)) {
+      const [day, month, year] = dateStr.split('-')
+      return `${year}-${month}-${day}`
+    }
+    
+    return ''
+  }
+
+  // Função para converter YYYY-MM-DD para DD-MM-AAAA (para armazenamento)
+  const convertToStorageFormat = (dateStr: string): string => {
+    if (!dateStr || dateStr.length !== 10) return getCurrentDateString()
+    
+    // Se já está no formato DD-MM-AAAA, retorna como está
+    if (dateStr.match(/^\d{2}-\d{2}-\d{4}$/)) return dateStr
+    
+    // Se está no formato YYYY-MM-DD, converte para DD-MM-AAAA
+    if (dateStr.match(/^\d{4}-\d{2}-\d{2}$/)) {
+      const [year, month, day] = dateStr.split('-')
+      return `${day}-${month}-${year}`
+    }
+    
+    return getCurrentDateString()
+  }
+
   const [formData, setFormData] = useState({
     description: '',
     amount: '',
     type: 'income' as 'income' | 'expense',
     category: '',
-    date: '',
+    date: getCurrentDateString(),
     notes: '',
     status: 'completed' as 'pending' | 'completed' | 'cancelled',
     project: '',
@@ -57,6 +98,20 @@ export function TransactionFormAuto() {
   })
 
   const handleAddTransaction = () => {
+    // Validações obrigatórias
+    if (!formData.description) {
+      alert('Por favor, preencha a descrição da transação.')
+      return
+    }
+    
+    if (!formData.amount || Number(formData.amount) <= 0) {
+      alert('Por favor, informe um valor válido para a transação.')
+      return
+    }
+
+    // Garante que sempre há uma data válida no formato DD-MM-AAAA
+    const transactionDate = formData.date || getCurrentDateString()
+
     if (formData.description && formData.amount) {
       if (editingId) {
         // Ao salvar manualmente, atualiza a transação
@@ -65,7 +120,7 @@ export function TransactionFormAuto() {
           amount: Number(formData.amount),
           type: formData.type,
           category: formData.category,
-          date: formData.date,
+          date: transactionDate,
           notes: formData.notes,
           status: formData.status,
           project: formData.project,
@@ -80,7 +135,7 @@ export function TransactionFormAuto() {
           amount: Number(formData.amount),
           type: formData.type,
           category: formData.category,
-          date: formData.date,
+          date: transactionDate,
           notes: formData.notes,
           status: formData.status,
           project: formData.project,
@@ -99,7 +154,7 @@ export function TransactionFormAuto() {
       amount: '',
       type: 'income',
       category: '',
-      date: '',
+      date: getCurrentDateString(),
       notes: '',
       status: 'completed',
       project: '',
@@ -118,7 +173,7 @@ export function TransactionFormAuto() {
       amount: transaction.amount.toString(),
       type: transaction.type,
       category: transaction.category,
-      date: transaction.date,
+      date: convertToStorageFormat(transaction.date || ''), // Garante formato DD-MM-AAAA
       notes: transaction.notes || '',
       status: transaction.status || 'completed',
       project: transaction.project || '',
@@ -271,8 +326,8 @@ export function TransactionFormAuto() {
               <label className="text-sm font-medium">Data</label>
               <Input
                 type="date"
-                value={formData.date}
-                onChange={(e) => setFormData({...formData, date: e.target.value})}
+                value={convertToInputFormat(formData.date)}
+                onChange={(e) => setFormData({...formData, date: convertToStorageFormat(e.target.value)})}
                 className="w-full sm:w-48"
               />
             </div>

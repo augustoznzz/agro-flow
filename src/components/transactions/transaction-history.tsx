@@ -167,7 +167,34 @@ export function TransactionHistory({
   }
 
   const formatDate = (date: string) => {
-    return new Date(date).toLocaleDateString('pt-BR')
+    if (!date || date.trim() === '') {
+      return 'Data não informada'
+    }
+    
+    // Se já está no formato DD-MM-AAAA, apenas reformata para exibição
+    if (date.match(/^\d{2}-\d{2}-\d{4}$/)) {
+      const [day, month, year] = date.split('-')
+      const parsedDate = new Date(Number(year), Number(month) - 1, Number(day))
+      if (!isNaN(parsedDate.getTime())) {
+        return parsedDate.toLocaleDateString('pt-BR')
+      }
+    }
+    
+    // Compatibilidade com formato antigo YYYY-MM-DD
+    if (date.match(/^\d{4}-\d{2}-\d{2}$/)) {
+      const parsedDate = new Date(date)
+      if (!isNaN(parsedDate.getTime())) {
+        return parsedDate.toLocaleDateString('pt-BR')
+      }
+    }
+    
+    // Fallback para outras tentativas de parsing
+    const parsedDate = new Date(date)
+    if (isNaN(parsedDate.getTime())) {
+      return 'Data inválida'
+    }
+    
+    return parsedDate.toLocaleDateString('pt-BR')
   }
 
   return (

@@ -38,14 +38,48 @@ function processFinancialData(transactions: Transaction[]): MonthlyData[] {
   }
 
   const parseDate = (dateStr: string): { year: number; month: number } => {
-    if (typeof dateStr === 'string' && /^\d{4}-\d{2}-\d{2}/.test(dateStr)) {
-      const parts = dateStr.split('-')
+    // Primeiro, tenta validar se a data não está vazia ou inválida
+    if (!dateStr || dateStr.trim() === '') {
+      const now = new Date()
       return {
-        year: Number(parts[0]),
-        month: Number(parts[1]) - 1
+        year: now.getFullYear(),
+        month: now.getMonth()
       }
     }
+
+    // Tenta parsear formato DD-MM-AAAA (novo formato brasileiro)
+    if (typeof dateStr === 'string' && /^\d{2}-\d{2}-\d{4}/.test(dateStr)) {
+      const parts = dateStr.split('-')
+      const day = Number(parts[0])
+      const month = Number(parts[1]) - 1 // JavaScript months are 0-based
+      const year = Number(parts[2])
+      
+      if (year > 1900 && year < 2100 && month >= 0 && month < 12 && day >= 1 && day <= 31) {
+        return { year, month }
+      }
+    }
+
+    // Tenta parsear formato YYYY-MM-DD (formato antigo para compatibilidade)
+    if (typeof dateStr === 'string' && /^\d{4}-\d{2}-\d{2}/.test(dateStr)) {
+      const parts = dateStr.split('-')
+      const year = Number(parts[0])
+      const month = Number(parts[1]) - 1 // JavaScript months are 0-based
+      
+      if (year > 1900 && year < 2100 && month >= 0 && month < 12) {
+        return { year, month }
+      }
+    }
+    
+    // Fallback: tenta parsear como Date normal
     const d = new Date(dateStr)
+    if (isNaN(d.getTime())) {
+      const now = new Date()
+      return {
+        year: now.getFullYear(),
+        month: now.getMonth()
+      }
+    }
+    
     return {
       year: d.getFullYear(),
       month: d.getMonth()
@@ -62,9 +96,13 @@ function processFinancialData(transactions: Transaction[]): MonthlyData[] {
 
   // Processar transações históricas
   for (const transaction of transactions) {
-    if (!transaction || !transaction.date || transaction.amount === undefined) continue
+    if (!transaction) continue
     
-    const { year, month: monthIndex } = parseDate(transaction.date)
+    // Garantir que amount não é undefined ou null
+    const amount = typeof transaction.amount === 'number' ? transaction.amount : Number(transaction.amount || 0)
+    if (!isFinite(amount) || amount <= 0) continue
+    
+    const { year, month: monthIndex } = parseDate(transaction.date || '')
     const key = `${year}-${String(monthIndex + 1).padStart(2, '0')}`
 
     if (!monthMap.has(key)) {
@@ -78,17 +116,13 @@ function processFinancialData(transactions: Transaction[]): MonthlyData[] {
     }
     
     const acc = monthMap.get(key)!
-    const amount = Number(transaction.amount)
     
-    if (isFinite(amount)) {
-      const normalized = Math.abs(amount)
-      if (transaction.type === 'income') {
-        acc.income += normalized
-      } else if (transaction.type === 'expense') {
-        acc.expense += normalized
-      }
-      acc.transactions.push(transaction)
+    if (transaction.type === 'income') {
+      acc.income += amount
+    } else if (transaction.type === 'expense') {
+      acc.expense += amount
     }
+    acc.transactions.push(transaction)
   }
 
   // Converter para array e calcular métricas
@@ -97,6 +131,12 @@ function processFinancialData(transactions: Transaction[]): MonthlyData[] {
       const [year, month] = key.split('-')
       const monthIndex = Number(month) - 1
       const date = new Date(Number(year), monthIndex, 1)
+      
+      // Validar se a data é válida
+      if (isNaN(date.getTime())) {
+        return null
+      }
+      
       const label = date.toLocaleDateString('pt-BR', { 
         month: 'long', 
         year: 'numeric' 
@@ -121,6 +161,7 @@ function processFinancialData(transactions: Transaction[]): MonthlyData[] {
         avgTransaction
       }
     })
+    .filter((item): item is MonthlyData => item !== null)
     .sort((a, b) => {
       if (a.year !== b.year) return a.year - b.year
       return a.monthIndex - b.monthIndex

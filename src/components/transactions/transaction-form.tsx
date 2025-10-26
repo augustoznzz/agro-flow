@@ -13,13 +13,54 @@ import { useData } from '@/contexts/data-context'
 export function TransactionForm() {
   const { transactions, addTransaction } = useData()
 
+  // Função para obter data atual no formato DD-MM-AAAA
+  const getCurrentDateString = () => {
+    const now = new Date()
+    const year = now.getFullYear()
+    const month = String(now.getMonth() + 1).padStart(2, '0')
+    const day = String(now.getDate()).padStart(2, '0')
+    return `${day}-${month}-${year}`
+  }
+
+  // Função para converter DD-MM-AAAA para YYYY-MM-DD (para input date)
+  const convertToInputFormat = (dateStr: string): string => {
+    if (!dateStr || dateStr.length !== 10) return ''
+    
+    // Se já está no formato YYYY-MM-DD, retorna como está
+    if (dateStr.match(/^\d{4}-\d{2}-\d{2}$/)) return dateStr
+    
+    // Se está no formato DD-MM-AAAA, converte para YYYY-MM-DD
+    if (dateStr.match(/^\d{2}-\d{2}-\d{4}$/)) {
+      const [day, month, year] = dateStr.split('-')
+      return `${year}-${month}-${day}`
+    }
+    
+    return ''
+  }
+
+  // Função para converter YYYY-MM-DD para DD-MM-AAAA (para armazenamento)
+  const convertToStorageFormat = (dateStr: string): string => {
+    if (!dateStr || dateStr.length !== 10) return getCurrentDateString()
+    
+    // Se já está no formato DD-MM-AAAA, retorna como está
+    if (dateStr.match(/^\d{2}-\d{2}-\d{4}$/)) return dateStr
+    
+    // Se está no formato YYYY-MM-DD, converte para DD-MM-AAAA
+    if (dateStr.match(/^\d{4}-\d{2}-\d{2}$/)) {
+      const [year, month, day] = dateStr.split('-')
+      return `${day}-${month}-${year}`
+    }
+    
+    return getCurrentDateString()
+  }
+
   const [showForm, setShowForm] = useState(false)
   const [newTransaction, setNewTransaction] = useState({
     description: '',
     amount: '',
     type: 'income' as 'income' | 'expense',
     category: '',
-    date: '',
+    date: getCurrentDateString(),
     notes: '',
     status: 'completed' as 'pending' | 'completed' | 'cancelled',
     project: '',
@@ -29,13 +70,27 @@ export function TransactionForm() {
   })
 
   const handleAddTransaction = () => {
+    // Validações obrigatórias
+    if (!newTransaction.description) {
+      alert('Por favor, preencha a descrição da transação.')
+      return
+    }
+    
+    if (!newTransaction.amount || Number(newTransaction.amount) <= 0) {
+      alert('Por favor, informe um valor válido para a transação.')
+      return
+    }
+
+    // Garante que sempre há uma data válida no formato DD-MM-AAAA
+    const transactionDate = newTransaction.date || getCurrentDateString()
+
     if (newTransaction.description && newTransaction.amount) {
       addTransaction({
         description: newTransaction.description,
         amount: Number(newTransaction.amount),
         type: newTransaction.type,
         category: newTransaction.category,
-        date: newTransaction.date,
+        date: transactionDate,
         notes: newTransaction.notes,
         status: newTransaction.status,
         project: newTransaction.project,
@@ -48,7 +103,7 @@ export function TransactionForm() {
         amount: '',
         type: 'income',
         category: '',
-        date: '',
+        date: getCurrentDateString(),
         notes: '',
         status: 'completed',
         project: '',
@@ -184,8 +239,8 @@ export function TransactionForm() {
                   <label className="text-sm font-medium">Data</label>
                   <Input
                     type="date"
-                    value={newTransaction.date}
-                    onChange={(e) => setNewTransaction({...newTransaction, date: e.target.value})}
+                    value={convertToInputFormat(newTransaction.date)}
+                    onChange={(e) => setNewTransaction({...newTransaction, date: convertToStorageFormat(e.target.value)})}
                     className="w-full sm:w-48"
                   />
                 </div>
@@ -294,7 +349,22 @@ export function TransactionForm() {
                     <div>
                       <p className="font-medium">{transaction.description}</p>
                       <p className="text-sm text-gray-500">
-                        {transaction.category} • {new Date(transaction.date).toLocaleDateString('pt-BR')}
+                        {transaction.category} • {(() => {
+                          if (!transaction.date || transaction.date.trim() === '') return 'Data não informada'
+                          
+                          // Se está no formato DD-MM-AAAA
+                          if (transaction.date.match(/^\d{2}-\d{2}-\d{4}$/)) {
+                            const [day, month, year] = transaction.date.split('-')
+                            const parsedDate = new Date(Number(year), Number(month) - 1, Number(day))
+                            if (!isNaN(parsedDate.getTime())) {
+                              return parsedDate.toLocaleDateString('pt-BR')
+                            }
+                          }
+                          
+                          // Compatibilidade com formato antigo YYYY-MM-DD
+                          const parsedDate = new Date(transaction.date)
+                          return isNaN(parsedDate.getTime()) ? 'Data inválida' : parsedDate.toLocaleDateString('pt-BR')
+                        })()}
                       </p>
                     </div>
                   </div>
