@@ -100,7 +100,11 @@ export function Modal({
 
   return (
     <div className="fixed inset-0 z-[100] flex items-center justify-center">
-      <div className="modal-backdrop" onClick={onClose} aria-hidden="true"></div>
+      <div 
+        className="fixed inset-0 bg-black bg-opacity-50 z-[99]"
+        onClick={onClose} 
+        aria-hidden="true"
+      ></div>
       <div
         ref={containerRef}
         role="dialog"
