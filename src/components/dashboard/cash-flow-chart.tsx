@@ -63,22 +63,23 @@ function CashFlowChartContent() {
 
     // Helper para parsear data (suporta DD-MM-AAAA e YYYY-MM-DD)
     const parseDate = (dateStr: string): { year: number; month: number } => {
-      // Formato DD-MM-AAAA (novo formato brasileiro)
-      if (typeof dateStr === 'string' && /^\d{2}-\d{2}-\d{4}/.test(dateStr)) {
+      // Formato DD-MM-AAAA (formato brasileiro padrão) - PRIORIDADE MÁXIMA
+      if (typeof dateStr === 'string' && /^\d{2}-\d{2}-\d{4}$/.test(dateStr)) {
         const parts = dateStr.split('-')
-        return {
-          year: Number(parts[2]),
-          month: Number(parts[1]) - 1
-        }
+        const day = Number(parts[0])
+        const month = Number(parts[1]) - 1
+        const year = Number(parts[2])
+        
+        return { year, month }
       }
       
-      // Formato YYYY-MM-DD (compatibilidade)
-      if (typeof dateStr === 'string' && /^\d{4}-\d{2}-\d{2}/.test(dateStr)) {
+      // Formato YYYY-MM-DD (compatibilidade com formato antigo)
+      if (typeof dateStr === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
         const parts = dateStr.split('-')
-        return {
-          year: Number(parts[0]),
-          month: Number(parts[1]) - 1
-        }
+        const year = Number(parts[0])
+        const month = Number(parts[1]) - 1
+        
+        return { year, month }
       }
       
       const d = new Date(dateStr)

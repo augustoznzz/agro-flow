@@ -254,13 +254,49 @@ export function DataProvider({ children }: { children: ReactNode }) {
             await idb.bulkPut('properties', defaultProperties)
             localStorage.setItem('agroflow-initialized', 'true')
           } else {
-            // Sempre usa os dados do IndexedDB (mesmo que esteja vazio)
-            // Normalize stored transactions (defensive: amount as number, date as ISO string)
+            // MIGRAÇÃO CRÍTICA: Normaliza E converte todas as datas para DD-MM-AAAA brasileiro
+            console.log('🔄 MIGRAÇÃO: processando', storedTransactions.length, 'transações existentes')
+            
+            const migrateDateFormat = (dateStr: string): string => {
+              if (!dateStr || typeof dateStr !== 'string') return dateStr
+
+              // Se já está no formato DD-MM-AAAA, mantém como está
+              if (/^\d{2}-\d{2}-\d{4}$/.test(dateStr)) {
+                return dateStr
+              }
+
+              // Se está no formato YYYY-MM-DD, converte para DD-MM-AAAA
+              if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+                const [year, month, day] = dateStr.split('-')
+                const converted = `${day}-${month}-${year}`
+                console.log('✅ MIGRAÇÃO:', dateStr, '->', converted)
+                return converted
+              }
+
+              // Fallback para outros formatos
+              try {
+                const d = new Date(dateStr)
+                if (!isNaN(d.getTime())) {
+                  const year = d.getFullYear()
+                  const month = String(d.getMonth() + 1).padStart(2, '0')
+                  const day = String(d.getDate()).padStart(2, '0')
+                  return `${day}-${month}-${year}`
+                }
+              } catch {}
+
+              return dateStr
+            }
+            
             const normalizedTx = storedTransactions.map((t) => ({
               ...t,
               amount: Number((t as Transaction).amount) || 0,
-              date: (typeof (t as Transaction).date === 'string' ? (t as Transaction).date : new Date((t as Transaction).date).toISOString().split('T')[0])
+              date: migrateDateFormat(typeof (t as Transaction).date === 'string' ? (t as Transaction).date : new Date((t as Transaction).date).toISOString().split('T')[0])
             }))
+            
+            console.log('✅ MIGRAÇÃO CONCLUÍDA:', normalizedTx.length, 'transações migradas para DD-MM-AAAA')
+            
+            // Salva as transações migradas de volta no IndexedDB
+            await idb.bulkPut('transactions', normalizedTx)
             setTransactions(normalizedTx)
             setCrops(storedCrops)
             setProperties(storedProperties)
@@ -354,7 +390,6 @@ export function DataProvider({ children }: { children: ReactNode }) {
     // Função auxiliar para garantir data válida no formato DD-MM-AAAA
     const ensureValidDate = (dateString: string): string => {
       if (!dateString || dateString.trim() === '') {
-        // Se não há data, usa a data atual no formato DD-MM-AAAA
         const now = new Date()
         const year = now.getFullYear()
         const month = String(now.getMonth() + 1).padStart(2, '0')
@@ -388,12 +423,14 @@ export function DataProvider({ children }: { children: ReactNode }) {
       return `${day}-${month}-${year}`
     }
 
+    const finalDate = ensureValidDate(transaction.date)
+    
     const newTransaction: Transaction = {
       type: transaction.type,
       category: transaction.category,
       description: transaction.description,
       amount: transaction.amount,
-      date: ensureValidDate(transaction.date),
+      date: finalDate,
       property_id: transaction.property_id,
       crop_cycle_id: transaction.crop_cycle_id,
       notes: transaction.notes,
@@ -402,10 +439,11 @@ export function DataProvider({ children }: { children: ReactNode }) {
       client: transaction.client,
       isRecurring: transaction.isRecurring,
       recurrenceType: transaction.recurrenceType,
-      id: Date.now().toString(),
+      id: `transaction-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
       user_id: 'user-1',
       created_at: new Date().toISOString()
     }
+    
     setTransactions(prev => [...prev, newTransaction])
     enqueue({ entity: 'transactions', action: 'create', payload: newTransaction as unknown as Record<string, unknown> })
   }
@@ -483,7 +521,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const addCrop = (crop: Omit<CropCycle, 'id'>) => {
     const newCrop: CropCycle = {
       ...crop,
-      id: Date.now().toString()
+      id: `crop-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
     }
     setCrops(prev => [...prev, newCrop])
     enqueue({ entity: 'crops', action: 'create', payload: newCrop as unknown as Record<string, unknown> })
@@ -516,7 +554,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   }
 
   const addProperty = (property: Omit<PropertyItem, 'id'>) => {
-    const newProperty: PropertyItem = { ...property, id: Date.now().toString() }
+    const newProperty: PropertyItem = { ...property, id: `property-${Date.now()}-${Math.random().toString(36).substr(2, 9)}` }
     setProperties(prev => [...prev, newProperty])
     enqueue({ entity: 'properties', action: 'create', payload: newProperty as unknown as Record<string, unknown> })
   }

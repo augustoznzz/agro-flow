@@ -21,15 +21,19 @@ import { ErrorBoundary } from '@/components/ui/error-boundary'
 function MainApp() {
   const { user, loading } = useAuth()
   const { transactions, updateTransaction, deleteTransaction, deleteAllTransactions } = useData()
-  const [activeTab, setActiveTab] = useState(() => {
-    if (typeof window === 'undefined') return 'dashboard'
-    try {
-      return localStorage.getItem('agroflow:activeTab') || 'dashboard'
-    } catch {
-      return 'dashboard'
-    }
-  })
+  const [activeTab, setActiveTab] = useState('dashboard') // Inicia sempre com 'dashboard' para evitar hydration mismatch
 
+  // Carrega o activeTab do localStorage após o mount
+  useEffect(() => {
+    try {
+      const savedTab = localStorage.getItem('agroflow:activeTab')
+      if (savedTab) {
+        setActiveTab(savedTab)
+      }
+    } catch {}
+  }, [])
+
+  // Salva o activeTab no localStorage quando muda
   useEffect(() => {
     try {
       localStorage.setItem('agroflow:activeTab', activeTab)

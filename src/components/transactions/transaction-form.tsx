@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -60,7 +60,7 @@ export function TransactionForm() {
     amount: '',
     type: 'income' as 'income' | 'expense',
     category: '',
-    date: getCurrentDateString(),
+    date: '', // Será definido após mount para evitar hydration mismatch
     notes: '',
     status: 'completed' as 'pending' | 'completed' | 'cancelled',
     project: '',
@@ -68,6 +68,19 @@ export function TransactionForm() {
     isRecurring: false,
     recurrenceType: 'monthly' as 'monthly' | 'yearly' | 'weekly'
   })
+
+  // Controle de hidratação - Next.js best practice
+  const [isClient, setIsClient] = useState(false)
+  
+  useEffect(() => {
+    setIsClient(true)
+    if (!newTransaction.date) {
+      setNewTransaction(prev => ({
+        ...prev,
+        date: getCurrentDateString()
+      }))
+    }
+  }, [])
 
   const handleAddTransaction = () => {
     // Validações obrigatórias

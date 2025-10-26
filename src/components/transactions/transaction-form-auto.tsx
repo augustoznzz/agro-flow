@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -27,33 +27,47 @@ export function TransactionFormAuto() {
     return `${day}-${month}-${year}`
   }
 
-  // Função para converter DD-MM-AAAA para YYYY-MM-DD (para input date)
-  const convertToInputFormat = (dateStr: string): string => {
-    if (!dateStr || dateStr.length !== 10) return ''
-    
-    // Se já está no formato YYYY-MM-DD, retorna como está
-    if (dateStr.match(/^\d{4}-\d{2}-\d{2}$/)) return dateStr
-    
-    // Se está no formato DD-MM-AAAA, converte para YYYY-MM-DD
-    if (dateStr.match(/^\d{2}-\d{2}-\d{4}$/)) {
-      const [day, month, year] = dateStr.split('-')
+  // Função para converter DD-MM-AAAA para YYYY-MM-DD (para input date HTML)
+  const convertToInputFormat = (ddmmyyyy: string): string => {
+    if (!ddmmyyyy || ddmmyyyy.length !== 10) {
+      // Se não há data, usa a data atual no formato YYYY-MM-DD para o input
+      const now = new Date()
+      const year = now.getFullYear()
+      const month = String(now.getMonth() + 1).padStart(2, '0')
+      const day = String(now.getDate()).padStart(2, '0')
       return `${year}-${month}-${day}`
     }
     
-    return ''
+    // Se já está no formato YYYY-MM-DD, retorna como está
+    if (ddmmyyyy.match(/^\d{4}-\d{2}-\d{2}$/)) return ddmmyyyy
+    
+    // Se está no formato DD-MM-AAAA, converte para YYYY-MM-DD
+    if (ddmmyyyy.match(/^\d{2}-\d{2}-\d{4}$/)) {
+      const [day, month, year] = ddmmyyyy.split('-')
+      return `${year}-${month}-${day}`
+    }
+    
+    // Fallback para data atual
+    const now = new Date()
+    const year = now.getFullYear()
+    const month = String(now.getMonth() + 1).padStart(2, '0')
+    const day = String(now.getDate()).padStart(2, '0')
+    return `${year}-${month}-${day}`
   }
 
-  // Função para converter YYYY-MM-DD para DD-MM-AAAA (para armazenamento)
-  const convertToStorageFormat = (dateStr: string): string => {
-    if (!dateStr || dateStr.length !== 10) return getCurrentDateString()
+  // Função para converter YYYY-MM-DD (input) para DD-MM-AAAA (armazenamento)
+  const convertToStorageFormat = (yyyymmdd: string): string => {
+    if (!yyyymmdd || yyyymmdd.length !== 10) return getCurrentDateString()
     
-    // Se já está no formato DD-MM-AAAA, retorna como está
-    if (dateStr.match(/^\d{2}-\d{2}-\d{4}$/)) return dateStr
-    
-    // Se está no formato YYYY-MM-DD, converte para DD-MM-AAAA
-    if (dateStr.match(/^\d{4}-\d{2}-\d{2}$/)) {
-      const [year, month, day] = dateStr.split('-')
+    // Input HTML sempre retorna YYYY-MM-DD, então convertemos para DD-MM-AAAA
+    if (yyyymmdd.match(/^\d{4}-\d{2}-\d{2}$/)) {
+      const [year, month, day] = yyyymmdd.split('-')
       return `${day}-${month}-${year}`
+    }
+    
+    // Se por algum motivo já está em DD-MM-AAAA, mantém
+    if (yyyymmdd.match(/^\d{2}-\d{2}-\d{4}$/)) {
+      return yyyymmdd
     }
     
     return getCurrentDateString()
@@ -64,7 +78,7 @@ export function TransactionFormAuto() {
     amount: '',
     type: 'income' as 'income' | 'expense',
     category: '',
-    date: getCurrentDateString(),
+    date: '', // Será definido após mount para evitar hydration mismatch
     notes: '',
     status: 'completed' as 'pending' | 'completed' | 'cancelled',
     project: '',
@@ -72,6 +86,19 @@ export function TransactionFormAuto() {
     isRecurring: false,
     recurrenceType: 'monthly' as 'monthly' | 'yearly' | 'weekly'
   })
+
+  // Controle de hidratação - Next.js best practice
+  const [isClient, setIsClient] = useState(false)
+  
+  useEffect(() => {
+    setIsClient(true)
+    if (!formData.date) {
+      setFormData(prev => ({
+        ...prev,
+        date: getCurrentDateString()
+      }))
+    }
+  }, [])
 
   // Auto-save quando editando uma transação existente
   const { status: autoSaveStatus } = useAutoSave({
@@ -436,7 +463,27 @@ export function TransactionFormAuto() {
                     <div>
                       <p className="font-medium">{transaction.description}</p>
                       <p className="text-sm text-gray-500">
-                        {transaction.category} • {new Date(transaction.date).toLocaleDateString('pt-BR')}
+                        {transaction.category} • {(() => {
+                          if (!transaction.date || transaction.date.trim() === '') return 'Data não informada'
+                          
+                          // Se está no formato DD-MM-AAAA, exibe diretamente
+                          if (transaction.date.match(/^\d{2}-\d{2}-\d{4}$/)) {
+                            return transaction.date
+                          }
+                          
+                          // Se está no formato YYYY-MM-DD, converte para DD-MM-AAAA
+                          if (transaction.date.match(/^\d{4}-\d{2}-\d{2}$/)) {
+                            const [year, month, day] = transaction.date.split('-')
+                            return `${day}-${month}-${year}`
+                          }
+                          
+                          // Fallback para outras tentativas de parsing
+                          try {
+                            return new Date(transaction.date).toLocaleDateString('pt-BR')
+                          } catch {
+                            return 'Data inválida'
+                          }
+                        })()}
                       </p>
                     </div>
                   </div>

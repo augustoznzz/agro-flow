@@ -75,7 +75,13 @@ self.addEventListener('fetch', (event) => {
         return fetch(request)
           .then((response) => {
             const copy = response.clone();
-            caches.open(RUNTIME_CACHE).then((cache) => cache.put(request, copy));
+            caches.open(RUNTIME_CACHE).then((cache) => {
+              // Evita tentar cachear extensões do browser
+              if (request.url.startsWith('chrome-extension://') || request.url.startsWith('moz-extension://')) {
+                return Promise.resolve();
+              }
+              return cache.put(request, copy);
+            });
             return response;
           })
           .catch(() => caches.match('/offline.html'));

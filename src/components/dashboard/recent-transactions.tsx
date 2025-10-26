@@ -60,7 +60,25 @@ export function RecentTransactions() {
                 <div className="min-w-0 flex-1">
                   <p className="text-sm font-medium truncate">{transaction.description}</p>
                   <p className="text-xs text-gray-500">
-                    {new Date(transaction.date).toLocaleDateString('pt-BR')}
+                    {(() => {
+                      // Formato DD-MM-AAAA (novo formato brasileiro) - exibe diretamente
+                      if (typeof transaction.date === 'string' && /^\d{2}-\d{2}-\d{4}/.test(transaction.date)) {
+                        return transaction.date
+                      }
+                      
+                      // Formato YYYY-MM-DD (compatibilidade) - converte para exibição
+                      if (typeof transaction.date === 'string' && /^\d{4}-\d{2}-\d{2}/.test(transaction.date)) {
+                        const parts = transaction.date.split('-')
+                        return `${parts[2]}-${parts[1]}-${parts[0]}`
+                      }
+                      
+                      // Fallback: tenta parsear e converter
+                      try {
+                        return new Date(transaction.date).toLocaleDateString('pt-BR')
+                      } catch {
+                        return 'Data inválida'
+                      }
+                    })()}
                   </p>
                 </div>
               </div>

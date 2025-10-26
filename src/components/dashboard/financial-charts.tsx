@@ -47,8 +47,8 @@ function processFinancialData(transactions: Transaction[]): MonthlyData[] {
       }
     }
 
-    // Tenta parsear formato DD-MM-AAAA (novo formato brasileiro)
-    if (typeof dateStr === 'string' && /^\d{2}-\d{2}-\d{4}/.test(dateStr)) {
+    // Tenta parsear formato DD-MM-AAAA (formato brasileiro padrão) - PRIORIDADE MÁXIMA
+    if (typeof dateStr === 'string' && /^\d{2}-\d{2}-\d{4}$/.test(dateStr)) {
       const parts = dateStr.split('-')
       const day = Number(parts[0])
       const month = Number(parts[1]) - 1 // JavaScript months are 0-based
@@ -59,8 +59,8 @@ function processFinancialData(transactions: Transaction[]): MonthlyData[] {
       }
     }
 
-    // Tenta parsear formato YYYY-MM-DD (formato antigo para compatibilidade)
-    if (typeof dateStr === 'string' && /^\d{4}-\d{2}-\d{2}/.test(dateStr)) {
+    // Tenta parsear formato YYYY-MM-DD (compatibilidade com formato antigo)
+    if (typeof dateStr === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
       const parts = dateStr.split('-')
       const year = Number(parts[0])
       const month = Number(parts[1]) - 1 // JavaScript months are 0-based
