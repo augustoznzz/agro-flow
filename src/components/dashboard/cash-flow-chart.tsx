@@ -78,6 +78,8 @@ function CashFlowChartContent() {
     }
 
     // Processar transações históricas
+    let incomeCount = 0
+    let expenseCount = 0
     if (transactions && Array.isArray(transactions)) {
       transactions.forEach(transaction => {
         if (transaction && transaction.date && transaction.amount !== undefined) {
@@ -88,16 +90,19 @@ function CashFlowChartContent() {
             m => m.year === transactionYear && m.monthIndex === transactionMonth && !m.isProjected
           )
 
-          if (monthData && isFinite(amount)) {
+          if (monthData && isFinite(amount) && amount > 0) {
             if (transaction.type === 'income') {
               monthData.receitas += amount
+              incomeCount++
             } else if (transaction.type === 'expense') {
               monthData.despesas += amount
+              expenseCount++
             }
           }
         }
       })
     }
+
 
     // Calcular médias para projeções (baseado nos últimos 6 meses com dados)
     const historicalData = allMonths.filter(m => !m.isProjected && (m.receitas > 0 || m.despesas > 0))
@@ -148,18 +153,34 @@ function CashFlowChartContent() {
     const projectedExpense = projectedMonths.reduce((sum, m) => sum + m.despesas, 0)
     const projectedBalance = projectedIncome - projectedExpense
 
+    // Simplificar dados para usar apenas receitas/despesas com flags
+    const processedData = allMonths.map(({ month, receitas, despesas, isProjected, saldo }) => ({
+      month,
+      receitas: receitas || 0,
+      despesas: despesas || 0,
+      isProjected,
+      saldo,
+      // Separar dados históricos e projeções para renderização diferenciada
+      receitasHist: !isProjected ? (receitas || 0) : null,
+      despesasHist: !isProjected ? (despesas || 0) : null,
+      receitasProj: isProjected ? (receitas || 0) : null,
+      despesasProj: isProjected ? (despesas || 0) : null
+    }))
+
+    // Remover logs desnecessários para performance
+    const monthsWithData = processedData.filter(d => d.receitas > 0 || d.despesas > 0)
+    
+    // Debug apenas quando há problemas (opcional)
+    if (monthsWithData.length > 0 && process.env.NODE_ENV === 'development') {
+      console.log('Cash Flow Data Ready:', {
+        historicalMonths: monthsWithData.filter(d => !d.isProjected).length,
+        projectedMonths: monthsWithData.filter(d => d.isProjected).length,
+        totalTransactions: incomeCount + expenseCount
+      })
+    }
+
     return {
-      chartData: allMonths.map(({ month, receitas, despesas, isProjected, saldo }) => ({
-        month,
-        receitas,
-        despesas,
-        isProjected,
-        saldo,
-        receitasProj: isProjected ? receitas : null,
-        despesasProj: isProjected ? despesas : null,
-        receitasReal: !isProjected ? receitas : null,
-        despesasReal: !isProjected ? despesas : null
-      })),
+      chartData: processedData,
       currentMonthIndex: 12, // Índice onde começam as projeções
       projectionStats: {
         totalIncome: projectedIncome,
@@ -204,17 +225,21 @@ function CashFlowChartContent() {
   // Componente de tooltip customizado
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
-      const isProjected = payload[0]?.payload?.isProjected
+      const dataPoint = payload[0]?.payload
+      const isProjected = dataPoint?.isProjected
+      
+      // Filtra apenas os valores não undefined para mostrar no tooltip
+      const validPayload = payload.filter((entry: any) => entry.value !== undefined && entry.value !== null)
+      
       return (
         <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
           <p className="font-medium text-gray-800 mb-2">
             {label} {isProjected && <span className="text-blue-500 text-xs">(Projeção)</span>}
+            {!isProjected && <span className="text-green-600 text-xs">(Histórico)</span>}
           </p>
-          {payload.map((entry: any, index: number) => (
+          {validPayload.map((entry: any, index: number) => (
             <p key={index} style={{ color: entry.color }} className="text-sm">
-              {entry.name === 'receitasReal' || entry.name === 'receitasProj' ? 'Receitas' : 
-               entry.name === 'despesasReal' || entry.name === 'despesasProj' ? 'Despesas' : entry.name}
-              : R$ {Number(entry.value).toLocaleString('pt-BR')}
+              {entry.name}: R$ {Number(entry.value).toLocaleString('pt-BR')}
             </p>
           ))}
           {isProjected && (
@@ -314,27 +339,27 @@ function CashFlowChartContent() {
                 
                 <Tooltip content={<CustomTooltip />} />
                 
-                {/* Linha de Receitas Reais */}
+                {/* Linha de Receitas Históricas */}
                 <Line 
                   type="monotone" 
-                  dataKey="receitasReal" 
+                  dataKey="receitasHist" 
                   stroke="#10b981" 
-                  strokeWidth={3}
-                  name="receitasReal"
-                  dot={{ r: 4, fill: '#10b981' }}
-                  activeDot={{ r: 6, fill: '#10b981' }}
+                  strokeWidth={4}
+                  name="Receitas"
+                  dot={{ r: 5, fill: '#10b981' }}
+                  activeDot={{ r: 7, fill: '#10b981' }}
                   connectNulls={false}
                 />
                 
-                {/* Linha de Despesas Reais */}
+                {/* Linha de Despesas Históricas */}
                 <Line 
                   type="monotone" 
-                  dataKey="despesasReal" 
+                  dataKey="despesasHist" 
                   stroke="#ef4444" 
-                  strokeWidth={3}
-                  name="despesasReal"
-                  dot={{ r: 4, fill: '#ef4444' }}
-                  activeDot={{ r: 6, fill: '#ef4444' }}
+                  strokeWidth={4}
+                  name="Despesas"
+                  dot={{ r: 5, fill: '#ef4444' }}
+                  activeDot={{ r: 7, fill: '#ef4444' }}
                   connectNulls={false}
                 />
                 
@@ -343,11 +368,11 @@ function CashFlowChartContent() {
                   type="monotone" 
                   dataKey="receitasProj" 
                   stroke="#10b981" 
-                  strokeWidth={2}
-                  strokeDasharray="5 5"
-                  name="receitasProj"
-                  dot={{ r: 3, fill: '#10b981', stroke: '#ffffff', strokeWidth: 1 }}
-                  activeDot={{ r: 5, fill: '#10b981' }}
+                  strokeWidth={3}
+                  strokeDasharray="10 5"
+                  name="Receitas (Projeção)"
+                  dot={{ r: 4, fill: '#10b981', stroke: '#ffffff', strokeWidth: 2 }}
+                  activeDot={{ r: 6, fill: '#10b981' }}
                   connectNulls={false}
                 />
                 
@@ -356,34 +381,34 @@ function CashFlowChartContent() {
                   type="monotone" 
                   dataKey="despesasProj" 
                   stroke="#ef4444" 
-                  strokeWidth={2}
-                  strokeDasharray="5 5"
-                  name="despesasProj"
-                  dot={{ r: 3, fill: '#ef4444', stroke: '#ffffff', strokeWidth: 1 }}
-                  activeDot={{ r: 5, fill: '#ef4444' }}
+                  strokeWidth={3}
+                  strokeDasharray="10 5"
+                  name="Despesas (Projeção)"
+                  dot={{ r: 4, fill: '#ef4444', stroke: '#ffffff', strokeWidth: 2 }}
+                  activeDot={{ r: 6, fill: '#ef4444' }}
                   connectNulls={false}
                 />
               </LineChart>
             </ResponsiveContainer>
           </div>
 
-          {/* Legenda */}
-          <div className="flex flex-wrap justify-center gap-4 mt-4 pt-4 border-t">
+          {/* Legenda Melhorada */}
+          <div className="flex flex-wrap justify-center gap-6 mt-4 pt-4 border-t">
             <div className="flex items-center gap-2">
-              <div className="w-4 h-0.5 bg-emerald-500"></div>
-              <span className="text-sm text-gray-600">Receitas (Histórico)</span>
+              <div className="w-6 h-1 bg-emerald-500 rounded"></div>
+              <span className="text-sm font-medium text-gray-700">Receitas Reais</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-4 h-0.5 bg-red-500"></div>
-              <span className="text-sm text-gray-600">Despesas (Histórico)</span>
+              <div className="w-6 h-1 bg-red-500 rounded"></div>
+              <span className="text-sm font-medium text-gray-700">Despesas Reais</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-4 h-0.5 bg-emerald-500 border-dashed border border-emerald-500"></div>
-              <span className="text-sm text-gray-600">Receitas (Projeção)</span>
+              <div className="w-6 h-1 bg-emerald-500 rounded" style={{ backgroundImage: 'repeating-linear-gradient(to right, #10b981 0, #10b981 3px, transparent 3px, transparent 6px)' }}></div>
+              <span className="text-sm font-medium text-gray-700">Receitas Projetadas</span>
             </div>
             <div className="flex items-center gap-2">
-              <div className="w-4 h-0.5 bg-red-500 border-dashed border border-red-500"></div>
-              <span className="text-sm text-gray-600">Despesas (Projeção)</span>
+              <div className="w-6 h-1 bg-red-500 rounded" style={{ backgroundImage: 'repeating-linear-gradient(to right, #ef4444 0, #ef4444 3px, transparent 3px, transparent 6px)' }}></div>
+              <span className="text-sm font-medium text-gray-700">Despesas Projetadas</span>
             </div>
           </div>
 
