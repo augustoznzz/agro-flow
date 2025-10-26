@@ -99,20 +99,24 @@ export function Modal({
   const maxWidth = sizeToMaxWidth[size]
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center">
+    <>
+      {/* Backdrop */}
       <div 
-        className="fixed inset-0 bg-black bg-opacity-50 z-[99]"
+        className="fixed inset-0 bg-black/50 z-[100]"
         onClick={onClose} 
         aria-hidden="true"
       ></div>
-      <div
-        ref={containerRef}
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby={title ? 'modal-title' : undefined}
-        aria-describedby={description ? 'modal-description' : undefined}
-        className={`relative z-10 w-full ${maxWidth} rounded-lg border bg-background p-0 shadow-lg max-h-[90vh] overflow-y-auto`}
-      >
+      
+      {/* Modal Container */}
+      <div className="fixed inset-0 z-[101] flex items-center justify-center pointer-events-none">
+        <div
+          ref={containerRef}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby={title ? 'modal-title' : undefined}
+          aria-describedby={description ? 'modal-description' : undefined}
+          className={`pointer-events-auto w-full ${maxWidth} rounded-lg border bg-background p-0 shadow-lg max-h-[90vh] overflow-y-auto`}
+        >
         {(title || description) && (
           <div className="px-6 pt-5 pb-2">
             {title && (
@@ -135,8 +139,9 @@ export function Modal({
             {footer}
           </div>
         )}
+        </div>
       </div>
-    </div>
+    </>
   )
 }
 
