@@ -4,6 +4,7 @@ import { createContext, useContext, useState, ReactNode, useEffect } from 'react
 import { Transaction } from '@/types'
 import { idb, type OutboxOperation } from '@/lib/idb'
 import { supabase } from '@/lib/supabase'
+import { useAuth } from '@/components/auth/auth-provider'
 
 export interface CropCycle {
   id: string
@@ -49,6 +50,9 @@ interface DataContextType {
 const DataContext = createContext<DataContextType | undefined>(undefined)
 
 export function DataProvider({ children }: { children: ReactNode }) {
+  // Obter o usuário autenticado
+  const { user } = useAuth()
+  
   // Inicializar com arrays vazios - os dados virão do IndexedDB
   const [transactions, setTransactions] = useState<Transaction[]>([])
   const [crops, setCrops] = useState<CropCycle[]>([])
@@ -77,7 +81,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
         const defaultTransactions: Transaction[] = [
           {
             id: '1',
-            user_id: 'user-1',
+            user_id: user?.id || 'anonymous',
             description: 'Venda de Soja',
             amount: 15000,
             type: 'income',
@@ -87,7 +91,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
           },
           {
             id: '2',
-            user_id: 'user-1',
+            user_id: user?.id || 'anonymous',
             description: 'Compra de Fertilizantes',
             amount: 3200,
             type: 'expense',
@@ -97,7 +101,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
           },
           {
             id: '3',
-            user_id: 'user-1',
+            user_id: user?.id || 'anonymous',
             description: 'Venda de Milho',
             amount: 8500,
             type: 'income',
@@ -107,7 +111,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
           },
           {
             id: '4',
-            user_id: 'user-1',
+            user_id: user?.id || 'anonymous',
             description: 'Mão de Obra',
             amount: 1800,
             type: 'expense',
@@ -117,7 +121,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
           },
           {
             id: '5',
-            user_id: 'user-1',
+            user_id: user?.id || 'anonymous',
             description: 'Venda de Algodão',
             amount: 12000,
             type: 'income',
@@ -127,7 +131,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
           },
           {
             id: '6',
-            user_id: 'user-1',
+            user_id: user?.id || 'anonymous',
             description: 'Sementes',
             amount: 2500,
             type: 'expense',
@@ -137,7 +141,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
           },
           {
             id: '7',
-            user_id: 'user-1',
+            user_id: user?.id || 'anonymous',
             description: 'Combustível',
             amount: 1200,
             type: 'expense',
@@ -147,7 +151,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
           },
           {
             id: '8',
-            user_id: 'user-1',
+            user_id: user?.id || 'anonymous',
             description: 'Venda de Feijão',
             amount: 6800,
             type: 'income',
@@ -157,7 +161,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
           },
           {
             id: '9',
-            user_id: 'user-1',
+            user_id: user?.id || 'anonymous',
             description: 'Defensivos',
             amount: 4200,
             type: 'expense',
@@ -167,7 +171,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
           },
           {
             id: '10',
-            user_id: 'user-1',
+            user_id: user?.id || 'anonymous',
             description: 'Venda de Trigo',
             amount: 9500,
             type: 'income',
@@ -440,7 +444,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
       isRecurring: transaction.isRecurring,
       recurrenceType: transaction.recurrenceType,
       id: `transaction-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-      user_id: 'user-1',
+      user_id: user?.id || 'anonymous',
       created_at: new Date().toISOString()
     }
     
