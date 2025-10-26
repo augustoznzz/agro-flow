@@ -293,7 +293,7 @@ export function TransactionFormAuto() {
               <Input
                 placeholder="Ex: Venda de Soja"
                 value={formData.description}
-                onChange={(e) => setFormData({...formData, description: e.target.value})}
+                onChange={(e) => setFormData(prev => ({...prev, description: e.target.value}))}
               />
             </div>
             <div>
@@ -302,7 +302,7 @@ export function TransactionFormAuto() {
                 type="number"
                 placeholder="15000"
                 value={formData.amount}
-                onChange={(e) => setFormData({...formData, amount: e.target.value})}
+                onChange={(e) => setFormData(prev => ({...prev, amount: e.target.value}))}
               />
             </div>
             <div>
@@ -311,7 +311,7 @@ export function TransactionFormAuto() {
                 <Button
                   type="button"
                   variant={formData.type === 'income' ? 'default' : 'outline'}
-                  onClick={() => setFormData({...formData, type: 'income'})}
+                  onClick={() => setFormData(prev => ({...prev, type: 'income'}))}
                   className="flex-1"
                 >
                   <Plus className="h-4 w-4 mr-2" />
@@ -320,7 +320,7 @@ export function TransactionFormAuto() {
                 <Button
                   type="button"
                   variant={formData.type === 'expense' ? 'default' : 'outline'}
-                  onClick={() => setFormData({...formData, type: 'expense'})}
+                  onClick={() => setFormData(prev => ({...prev, type: 'expense'}))}
                   className="flex-1"
                 >
                   <Minus className="h-4 w-4 mr-2" />
@@ -333,7 +333,7 @@ export function TransactionFormAuto() {
               <select
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 value={formData.category}
-                onChange={(e) => setFormData({...formData, category: e.target.value})}
+                onChange={(e) => setFormData(prev => ({...prev, category: e.target.value}))}
               >
                 <option value="">Selecione uma categoria</option>
                 {TRANSACTION_CATEGORIES.map(category => (
@@ -355,7 +355,7 @@ export function TransactionFormAuto() {
               <select
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                 value={formData.status}
-                onChange={(e) => setFormData({...formData, status: e.target.value as 'pending' | 'completed' | 'cancelled'})}
+                onChange={(e) => setFormData(prev => ({...prev, status: e.target.value as 'pending' | 'completed' | 'cancelled'}))}
               >
                 <option value="completed">Concluída</option>
                 <option value="pending">Pendente</option>
@@ -371,7 +371,7 @@ export function TransactionFormAuto() {
               <Input
                 placeholder="Ex: Projeto Soja 2024, Cliente ABC"
                 value={formData.project}
-                onChange={(e) => setFormData({...formData, project: e.target.value})}
+                onChange={(e) => setFormData(prev => ({...prev, project: e.target.value}))}
               />
             </div>
             <div>
@@ -379,7 +379,7 @@ export function TransactionFormAuto() {
               <Input
                 placeholder="Nome do cliente"
                 value={formData.client}
-                onChange={(e) => setFormData({...formData, client: e.target.value})}
+                onChange={(e) => setFormData(prev => ({...prev, client: e.target.value}))}
               />
             </div>
             <div className="flex items-center space-x-4">
@@ -387,7 +387,7 @@ export function TransactionFormAuto() {
                 <input
                   type="checkbox"
                   checked={formData.isRecurring}
-                  onChange={(e) => setFormData({...formData, isRecurring: e.target.checked})}
+                  onChange={(e) => setFormData(prev => ({...prev, isRecurring: e.target.checked}))}
                   className="rounded"
                 />
                 <span className="text-sm font-medium">Transação Recorrente</span>
@@ -396,7 +396,7 @@ export function TransactionFormAuto() {
                 <select
                   className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
                   value={formData.recurrenceType}
-                  onChange={(e) => setFormData({...formData, recurrenceType: e.target.value as 'monthly' | 'yearly' | 'weekly'})}
+                  onChange={(e) => setFormData(prev => ({...prev, recurrenceType: e.target.value as 'monthly' | 'yearly' | 'weekly'}))}
                 >
                   <option value="weekly">Semanal</option>
                   <option value="monthly">Mensal</option>
@@ -414,7 +414,7 @@ export function TransactionFormAuto() {
               rows={3}
               placeholder="Observações adicionais sobre a transação..."
               value={formData.notes}
-              onChange={(e) => setFormData({...formData, notes: e.target.value})}
+              onChange={(e) => setFormData(prev => ({...prev, notes: e.target.value}))}
             />
           </div>
 
