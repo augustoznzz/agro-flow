@@ -255,12 +255,19 @@ function CashFlowChartContent() {
       despesasHist: 'Despesas',
     }
 
+    // Determine header label
+    let headerLabel = isProjected ? 'Projeção' : 'Histórico'
+    if (displayPayload.length === 1) {
+      const singleEntry = displayPayload[0]
+      headerLabel = labelMap[singleEntry.dataKey] || singleEntry.name
+    }
+
     return (
       <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
         <p className="font-medium text-gray-800 mb-2">
           {label}{' '}
           <span className={isProjected ? 'text-blue-500 text-xs' : 'text-green-600 text-xs'}>
-            ({isProjected ? 'Projeção' : 'Histórico'})
+            ({headerLabel})
           </span>
         </p>
         {displayPayload.map((entry: any, idx: number) => (
