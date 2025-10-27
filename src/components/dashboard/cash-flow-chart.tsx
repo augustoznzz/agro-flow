@@ -238,13 +238,15 @@ function CashFlowChartContent() {
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (!active || !payload || payload.length === 0) return null
 
-    const dataPoint = payload[0]?.payload
-    const isProjected = Boolean(dataPoint?.isProjected)
-
     // Filtrar apenas entradas com valor
     const validPayload = payload.filter((e: any) => e.value !== null && e.value !== undefined)
 
-    const displayPayload = isProjected
+    // Detectar projeção pela presença de valores nas séries de projeção
+    const hasProjectedValues = validPayload.some((e: any) => 
+      (e.dataKey === 'receitasProj' || e.dataKey === 'despesasProj') && isFinite(Number(e.value))
+    )
+
+    const displayPayload = hasProjectedValues
       ? validPayload.filter((e: any) => e.dataKey === 'receitasProj' || e.dataKey === 'despesasProj')
       : validPayload.filter((e: any) => e.dataKey === 'receitasHist' || e.dataKey === 'despesasHist')
 
@@ -256,7 +258,7 @@ function CashFlowChartContent() {
     }
 
     // Determine header label
-    let headerLabel = isProjected ? 'Projeção' : 'Histórico'
+    let headerLabel = hasProjectedValues ? 'Projeção' : 'Histórico'
     if (displayPayload.length === 1) {
       const singleEntry = displayPayload[0]
       headerLabel = labelMap[singleEntry.dataKey] || singleEntry.name
@@ -266,7 +268,7 @@ function CashFlowChartContent() {
       <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
         <p className="font-medium text-gray-800 mb-2">
           {label}{' '}
-          <span className={isProjected ? 'text-blue-500 text-xs' : 'text-green-600 text-xs'}>
+          <span className={hasProjectedValues ? 'text-blue-500 text-xs' : 'text-green-600 text-xs'}>
             ({headerLabel})
           </span>
         </p>
@@ -275,7 +277,7 @@ function CashFlowChartContent() {
             {labelMap[entry.dataKey] || entry.name}: R$ {Number(entry.value).toLocaleString('pt-BR')}
           </p>
         ))}
-        {isProjected && (
+        {hasProjectedValues && (
           <p className="text-xs text-blue-600 mt-1">
             <Zap className="inline h-3 w-3 mr-1" />
             Baseado em tendências históricas
