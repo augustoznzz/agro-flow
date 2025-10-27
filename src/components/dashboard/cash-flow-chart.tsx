@@ -237,24 +237,35 @@ function CashFlowChartContent() {
   // Componente de tooltip customizado
   const CustomTooltip = ({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
-      const dataPoint = payload[0]?.payload
-      const isProjected = dataPoint?.isProjected
-      
       // Filtra apenas os valores não undefined para mostrar no tooltip
       const validPayload = payload.filter((entry: any) => entry.value !== undefined && entry.value !== null)
-      
+
+      // Detecta quais séries estão ativas neste ponto
+      const hasReceitaProj = validPayload.some((e: any) => e.dataKey === 'receitasProj')
+      const hasDespesaProj = validPayload.some((e: any) => e.dataKey === 'despesasProj')
+      const isProjectedTooltip = hasReceitaProj || hasDespesaProj
+
+      // Define rótulo mais específico quando possível
+      const headerSpecificLabel = hasReceitaProj
+        ? 'Receita projetada'
+        : hasDespesaProj
+          ? 'Despesa projetada'
+          : (isProjectedTooltip ? 'Projeção' : 'Histórico')
+
       return (
         <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
           <p className="font-medium text-gray-800 mb-2">
-            {label} {isProjected && <span className="text-blue-500 text-xs">(Projeção)</span>}
-            {!isProjected && <span className="text-green-600 text-xs">(Histórico)</span>}
+            {label}{' '}
+            <span className={`${isProjectedTooltip ? 'text-blue-500' : 'text-green-600'} text-xs`}>
+              ({headerSpecificLabel})
+            </span>
           </p>
           {validPayload.map((entry: any, index: number) => (
             <p key={index} style={{ color: entry.color }} className="text-sm">
               {entry.name}: R$ {Number(entry.value).toLocaleString('pt-BR')}
             </p>
           ))}
-          {isProjected && (
+          {isProjectedTooltip && (
             <p className="text-xs text-blue-600 mt-1">
               <Zap className="inline h-3 w-3 mr-1" />
               Baseado em tendências históricas
