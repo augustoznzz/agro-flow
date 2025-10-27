@@ -240,12 +240,29 @@ function CashFlowChartContent() {
       // Filtra apenas os valores não undefined para mostrar no tooltip
       const validPayload = payload.filter((entry: any) => entry.value !== undefined && entry.value !== null)
 
-      // Detecta quais séries estão ativas neste ponto
-      const hasReceitaProj = validPayload.some((e: any) => e.dataKey === 'receitasProj')
-      const hasDespesaProj = validPayload.some((e: any) => e.dataKey === 'despesasProj')
-      const isProjectedTooltip = hasReceitaProj || hasDespesaProj
+      // Detecta se o ponto pertence a projeção (por flag no dado e/ou pelas séries presentes)
+      const dataPoint = payload[0]?.payload
+      const isProjectedByFlag = Boolean(dataPoint?.isProjected)
+      const nameHasProj = (name: any) => typeof name === 'string' && /\(proje[cç][aã]o\)/i.test(name)
+      const hasReceitaProj = validPayload.some((e: any) => e.dataKey === 'receitasProj' || nameHasProj(e.name))
+      const hasDespesaProj = validPayload.some((e: any) => e.dataKey === 'despesasProj' || nameHasProj(e.name))
+      const isProjectedTooltip = isProjectedByFlag || hasReceitaProj || hasDespesaProj
 
-      // Define rótulo mais específico quando possível
+      // Exibir apenas séries correspondentes ao contexto (projeção vs histórico)
+      const displayPayload = isProjectedTooltip
+        ? validPayload.filter((e: any) => e.dataKey === 'receitasProj' || e.dataKey === 'despesasProj' || nameHasProj(e.name))
+        : validPayload.filter((e: any) => e.dataKey === 'receitasHist' || e.dataKey === 'despesasHist' || !nameHasProj(e.name))
+
+      const getSeriesLabel = (entry: any) => {
+        const dk = entry?.dataKey
+        if (dk === 'receitasProj' || /receitas.*proje/i.test(String(entry?.name))) return 'Receita projetada'
+        if (dk === 'despesasProj' || /despesas.*proje/i.test(String(entry?.name))) return 'Despesa projetada'
+        if (dk === 'receitasHist') return 'Receitas'
+        if (dk === 'despesasHist') return 'Despesas'
+        return String(entry?.name ?? '')
+      }
+
+      // Define rótulo do cabeçalho mais específico quando possível
       const headerSpecificLabel = hasReceitaProj
         ? 'Receita projetada'
         : hasDespesaProj
@@ -260,9 +277,9 @@ function CashFlowChartContent() {
               ({headerSpecificLabel})
             </span>
           </p>
-          {validPayload.map((entry: any, index: number) => (
+          {displayPayload.map((entry: any, index: number) => (
             <p key={index} style={{ color: entry.color }} className="text-sm">
-              {entry.name}: R$ {Number(entry.value).toLocaleString('pt-BR')}
+              {getSeriesLabel(entry)}: R$ {Number(entry.value).toLocaleString('pt-BR')}
             </p>
           ))}
           {isProjectedTooltip && (
