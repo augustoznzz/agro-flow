@@ -1,12 +1,23 @@
 import { createClient } from '@supabase/supabase-js'
 
 // Lê as credenciais das variáveis de ambiente
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
-// Validação para garantir que as variáveis existem
-if (!supabaseUrl || !supabaseAnonKey) {
-  throw new Error('Missing Supabase environment variables. Please check your .env.local file.')
+// Cria um cliente Supabase apenas se as variáveis estiverem configuradas
+// Em desenvolvimento, o app funciona sem Supabase usando apenas IndexedDB
+export const supabase = supabaseUrl && supabaseAnonKey 
+  ? createClient(supabaseUrl, supabaseAnonKey)
+  : null
+
+// Helper para verificar se Supabase está disponível
+export const isSupabaseAvailable = () => supabase !== null
+
+// Função para validar que Supabase está configurado quando necessário
+export const requireSupabase = () => {
+  if (!supabase) {
+    console.warn('⚠️ Supabase not configured. Running in offline mode with IndexedDB only.')
+    return null
+  }
+  return supabase
 }
-
-export const supabase = createClient(supabaseUrl, supabaseAnonKey)

@@ -39,7 +39,12 @@ export function Navigation({ activeTab, onTabChange }: NavigationProps) {
   }, [isMobileMenuOpen])
 
   const handleSignOut = async () => {
-    await supabase.auth.signOut()
+    if (supabase) {
+      await supabase.auth.signOut()
+    }
+    // Limpa o localStorage para simular logout mesmo sem Supabase
+    localStorage.clear()
+    window.location.reload()
   }
 
   const menuItems = [

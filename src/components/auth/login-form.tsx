@@ -17,6 +17,14 @@ export function LoginForm() {
     setLoading(true)
 
     try {
+      if (!supabase) {
+        // Modo offline/desenvolvimento - simula login sem Supabase
+        alert('⚠️ Supabase não configurado. Usando modo offline.')
+        // Recarrega a página para que o AuthProvider detecte que não há Supabase
+        window.location.reload()
+        return
+      }
+
       if (isSignUp) {
         const { error } = await supabase.auth.signUp({
           email,

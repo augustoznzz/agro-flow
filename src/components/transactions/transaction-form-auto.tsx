@@ -27,42 +27,27 @@ export function TransactionFormAuto() {
     return `${day}-${month}-${year}`
   }
 
-  // Função para converter DD-MM-AAAA para YYYY-MM-DD (para input date HTML)
-  const convertToInputFormat = (ddmmyyyy: string): string => {
-    if (!ddmmyyyy || ddmmyyyy.trim() === '') {
-      return ''
+  // Para nosso Input mascarado, mantemos DD-MM-AAAA no valor do input
+  const convertToInputFormat = (dateStr: string): string => {
+    if (!dateStr || dateStr.trim() === '') return ''
+    // Se já está em DD-MM-AAAA, mantém
+    if (/^\d{2}-\d{2}-\d{4}$/.test(dateStr)) return dateStr
+    // Se vier em YYYY-MM-DD (dados antigos), converte para DD-MM-AAAA
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+      const [year, month, day] = dateStr.split('-')
+      return `${day}-${month}-${year}`
     }
-    
-    // Se já está no formato YYYY-MM-DD, retorna como está
-    if (ddmmyyyy.match(/^\d{4}-\d{2}-\d{2}$/)) return ddmmyyyy
-    
-    // Se está no formato DD-MM-AAAA, converte para YYYY-MM-DD
-    if (ddmmyyyy.match(/^\d{2}-\d{2}-\d{4}$/)) {
-      const [day, month, year] = ddmmyyyy.split('-')
-      return `${year}-${month}-${day}`
-    }
-    
-    // Se não reconhece o formato, retorna vazio para o input lidar
     return ''
   }
 
-  // Função para converter YYYY-MM-DD (input) para DD-MM-AAAA (armazenamento)
-  const convertToStorageFormat = (yyyymmdd: string): string => {
-    // Se está vazio ou inválido, usa a data atual
-    if (!yyyymmdd || yyyymmdd.trim() === '') return getCurrentDateString()
-    
-    // Input HTML sempre retorna YYYY-MM-DD, então convertemos para DD-MM-AAAA
-    if (yyyymmdd.match(/^\d{4}-\d{2}-\d{2}$/)) {
-      const [year, month, day] = yyyymmdd.split('-')
+  // Garante DD-MM-AAAA para armazenamento
+  const convertToStorageFormat = (value: string): string => {
+    if (!value || value.trim() === '') return getCurrentDateString()
+    if (/^\d{2}-\d{2}-\d{4}$/.test(value)) return value
+    if (/^\d{4}-\d{2}-\d{2}$/.test(value)) {
+      const [year, month, day] = value.split('-')
       return `${day}-${month}-${year}`
     }
-    
-    // Se por algum motivo já está em DD-MM-AAAA, mantém
-    if (yyyymmdd.match(/^\d{2}-\d{2}-\d{4}$/)) {
-      return yyyymmdd
-    }
-    
-    // Se formato não reconhecido, usa a data atual
     return getCurrentDateString()
   }
 
@@ -82,14 +67,17 @@ export function TransactionFormAuto() {
 
   // Controle de hidratação - Next.js best practice
   const [isClient, setIsClient] = useState(false)
+  const [dateInputValue, setDateInputValue] = useState('')
   
   useEffect(() => {
     setIsClient(true)
     // Popula a data atual somente no cliente
+    const currentDate = getCurrentDateString()
     setFormData(prev => ({
       ...prev,
-      date: prev.date || getCurrentDateString()
+      date: prev.date || currentDate
     }))
+    setDateInputValue(convertToInputFormat(currentDate))
   }, [])
 
   // Auto-save quando editando uma transação existente
@@ -168,12 +156,13 @@ export function TransactionFormAuto() {
   }
 
   const resetForm = () => {
+    const currentDate = getCurrentDateString()
     setFormData({
       description: '',
       amount: '',
       type: 'income',
       category: '',
-      date: getCurrentDateString(),
+      date: currentDate,
       notes: '',
       status: 'completed',
       project: '',
@@ -181,18 +170,20 @@ export function TransactionFormAuto() {
       isRecurring: false,
       recurrenceType: 'monthly'
     })
+    setDateInputValue(convertToInputFormat(currentDate))
     setEditingId(null)
     setShowForm(false)
   }
 
   const handleEdit = (transaction: Transaction) => {
     setEditingId(transaction.id)
+    const transactionDate = convertToStorageFormat(transaction.date || '')
     setFormData({
       description: transaction.description,
       amount: transaction.amount.toString(),
       type: transaction.type,
       category: transaction.category,
-      date: convertToStorageFormat(transaction.date || ''), // Garante formato DD-MM-AAAA
+      date: transactionDate, // Garante formato DD-MM-AAAA
       notes: transaction.notes || '',
       status: transaction.status || 'completed',
       project: transaction.project || '',
@@ -200,6 +191,7 @@ export function TransactionFormAuto() {
       isRecurring: transaction.isRecurring || false,
       recurrenceType: transaction.recurrenceType || 'monthly'
     })
+    setDateInputValue(convertToInputFormat(transactionDate))
     setShowForm(true)
   }
 
@@ -345,9 +337,14 @@ export function TransactionFormAuto() {
               <label className="text-sm font-medium">Data</label>
               <Input
                 type="date"
-                value={isClient ? convertToInputFormat(formData.date) : ''}
-                onChange={(e) => setFormData(prev => ({...prev, date: convertToStorageFormat(e.target.value)}))}
+                value={isClient ? dateInputValue : ''}
+                onChange={(e) => {
+                  // Nosso Input já mascara em DD-MM-AAAA
+                  setDateInputValue(e.target.value)
+                  setFormData(prev => ({...prev, date: convertToStorageFormat(e.target.value)}))
+                }}
                 className="w-full sm:w-48"
+                disabled={!isClient}
               />
             </div>
             <div>

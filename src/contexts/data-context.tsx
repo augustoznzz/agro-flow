@@ -355,6 +355,9 @@ export function DataProvider({ children }: { children: ReactNode }) {
 
   const syncOutbox = async () => {
     if (typeof navigator !== 'undefined' && !navigator.onLine) return
+    // Se Supabase não está configurado, não tenta sincronizar
+    if (!supabase) return
+    
     try {
       const ops = await idb.peekAll()
       for (const op of ops) {

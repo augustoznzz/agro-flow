@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -46,12 +46,51 @@ export function TransactionHistory({
     category: '',
     date: ''
   })
+  const [dateInputValue, setDateInputValue] = useState('')
+  const [isClient, setIsClient] = useState(false)
   const [formErrors, setFormErrors] = useState<{[key: string]: string}>({})
   const [showSuccessMessage, setShowSuccessMessage] = useState(false)
   const [showDeleteMessage, setShowDeleteMessage] = useState(false)
   const [showDeleteAllModal, setShowDeleteAllModal] = useState(false)
   const [deleteAllConfirmText, setDeleteAllConfirmText] = useState('')
   const [showDeleteAllMessage, setShowDeleteAllMessage] = useState(false)
+
+  // Controle de hidratação
+  useEffect(() => {
+    setIsClient(true)
+  }, [])
+
+  // Função para converter DD-MM-AAAA para YYYY-MM-DD (para input date HTML)
+  const convertToInputFormat = (ddmmyyyy: string): string => {
+    if (!ddmmyyyy || ddmmyyyy.trim() === '') return ''
+    
+    // Se já está no formato YYYY-MM-DD, retorna como está
+    if (ddmmyyyy.match(/^\d{4}-\d{2}-\d{2}$/)) return ddmmyyyy
+    
+    // Se está no formato DD-MM-AAAA, converte para YYYY-MM-DD
+    if (ddmmyyyy.match(/^\d{2}-\d{2}-\d{4}$/)) {
+      const [day, month, year] = ddmmyyyy.split('-')
+      return `${year}-${month}-${day}`
+    }
+    
+    return ''
+  }
+
+  // Função para converter YYYY-MM-DD (input) para DD-MM-AAAA (armazenamento)
+  const convertToStorageFormat = (yyyymmdd: string): string => {
+    if (!yyyymmdd || yyyymmdd.trim() === '') return ''
+    
+    // Se já está no formato DD-MM-AAAA, mantém
+    if (yyyymmdd.match(/^\d{2}-\d{2}-\d{4}$/)) return yyyymmdd
+    
+    // Input HTML sempre retorna YYYY-MM-DD, então convertemos para DD-MM-AAAA
+    if (yyyymmdd.match(/^\d{4}-\d{2}-\d{2}$/)) {
+      const [year, month, day] = yyyymmdd.split('-')
+      return `${day}-${month}-${year}`
+    }
+    
+    return ''
+  }
 
   // Get categories - combine predefined categories with any existing categories from transactions
   const existingCategories = Array.from(new Set(transactions.map(t => t.category).filter(Boolean)))
@@ -67,9 +106,25 @@ export function TransactionHistory({
     return matchesSearch && matchesType && matchesCategory
   })
 
-  // Sort by date (most recent first)
+  // Sort by date (most recent first) com suporte a DD-MM-AAAA
+  const parseDateToTime = (dateStr: string): number => {
+    if (!dateStr || dateStr.trim() === '') return 0
+    if (/^\d{2}-\d{2}-\d{4}$/.test(dateStr)) {
+      const [day, month, year] = dateStr.split('-')
+      const d = new Date(Number(year), Number(month) - 1, Number(day))
+      return d.getTime()
+    }
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateStr)) {
+      const [year, month, day] = dateStr.split('-')
+      const d = new Date(Number(year), Number(month) - 1, Number(day))
+      return d.getTime()
+    }
+    const d = new Date(dateStr)
+    return d.getTime()
+  }
+
   const sortedTransactions = filteredTransactions.sort((a, b) => 
-    new Date(b.date).getTime() - new Date(a.date).getTime()
+    parseDateToTime(b.date) - parseDateToTime(a.date)
   )
 
   const handleEdit = (transaction: Transaction) => {
@@ -81,6 +136,7 @@ export function TransactionHistory({
       category: transaction.category,
       date: transaction.date
     })
+    setDateInputValue(convertToInputFormat(transaction.date))
   }
 
   const validateForm = () => {
@@ -138,6 +194,7 @@ export function TransactionHistory({
       category: '',
       date: ''
     })
+    setDateInputValue('')
     setFormErrors({})
   }
 
@@ -379,9 +436,13 @@ export function TransactionHistory({
                         <label className="text-sm font-medium">Data</label>
                         <Input
                           type="date"
-                          value={editForm.date}
-                          onChange={(e) => setEditForm({...editForm, date: e.target.value})}
+                          value={isClient ? dateInputValue : ''}
+                          onChange={(e) => {
+                            setDateInputValue(e.target.value)
+                            setEditForm({...editForm, date: convertToStorageFormat(e.target.value)})
+                          }}
                           className={formErrors.date ? 'border-red-500' : ''}
+                          disabled={!isClient}
                         />
                         {formErrors.date && (
                           <p className="text-red-500 text-xs mt-1 flex items-center gap-1">

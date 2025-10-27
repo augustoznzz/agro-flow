@@ -19,15 +19,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    // Se Supabase não está configurado, apenas marca como carregado
+    if (!supabase) {
+      setLoading(false)
+      return
+    }
+
+    // TypeScript agora sabe que supabase não é null dentro deste bloco
+    const client = supabase
+
     const getSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession()
+      const { data: { session } } = await client.auth.getSession()
       setUser(session?.user ?? null)
       setLoading(false)
     }
 
     getSession()
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+    const { data: { subscription } } = client.auth.onAuthStateChange(
       (event, session) => {
         setUser(session?.user ?? null)
         setLoading(false)

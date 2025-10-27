@@ -71,15 +71,18 @@ export function TransactionForm() {
 
   // Controle de hidratação - Next.js best practice
   const [isClient, setIsClient] = useState(false)
+  const [dateInputValue, setDateInputValue] = useState('')
   
   useEffect(() => {
     setIsClient(true)
+    const currentDate = getCurrentDateString()
     if (!newTransaction.date) {
       setNewTransaction(prev => ({
         ...prev,
-        date: getCurrentDateString()
+        date: currentDate
       }))
     }
+    setDateInputValue(convertToInputFormat(currentDate))
   }, [])
 
   const handleAddTransaction = () => {
@@ -252,8 +255,14 @@ export function TransactionForm() {
                   <label className="text-sm font-medium">Data</label>
                   <Input
                     type="date"
-                    value={convertToInputFormat(newTransaction.date)}
-                    onChange={(e) => setNewTransaction({...newTransaction, date: convertToStorageFormat(e.target.value)})}
+                    value={newTransaction.date}
+                    onChange={(e) => {
+                      // e.target.value já vem mascarado em DD-MM-AAAA pelo nosso Input
+                      const masked = e.target.value
+                      // valida DD-MM-AAAA
+                      const valid = /^\d{2}-\d{2}-\d{4}$/.test(masked) ? masked : newTransaction.date
+                      setNewTransaction({...newTransaction, date: valid})
+                    }}
                     className="w-full sm:w-48"
                   />
                 </div>
