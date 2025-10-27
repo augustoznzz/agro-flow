@@ -236,62 +236,46 @@ function CashFlowChartContent() {
 
   // Componente de tooltip customizado
   const CustomTooltip = ({ active, payload, label }: any) => {
-    if (active && payload && payload.length) {
-      // Filtra apenas os valores não undefined para mostrar no tooltip
-      const validPayload = payload.filter((entry: any) => entry.value !== undefined && entry.value !== null)
+    if (!active || !payload || payload.length === 0) return null
 
-      // Detecta se o ponto pertence a projeção (por flag no dado e/ou pelas séries presentes)
-      const dataPoint = payload[0]?.payload
-      const isProjectedByFlag = Boolean(dataPoint?.isProjected)
-      const nameHasProj = (name: any) => typeof name === 'string' && /\(proje[cç][aã]o\)/i.test(name)
-      const hasReceitaProj = validPayload.some((e: any) => e.dataKey === 'receitasProj' || nameHasProj(e.name))
-      const hasDespesaProj = validPayload.some((e: any) => e.dataKey === 'despesasProj' || nameHasProj(e.name))
-      const isProjectedTooltip = isProjectedByFlag || hasReceitaProj || hasDespesaProj
+    const dataPoint = payload[0]?.payload
+    const isProjected = Boolean(dataPoint?.isProjected)
 
-      // Exibir apenas séries correspondentes ao contexto (projeção vs histórico)
-      const displayPayload = isProjectedTooltip
-        ? validPayload.filter((e: any) => e.dataKey === 'receitasProj' || e.dataKey === 'despesasProj' || nameHasProj(e.name))
-        : validPayload.filter((e: any) => e.dataKey === 'receitasHist' || e.dataKey === 'despesasHist' || !nameHasProj(e.name))
+    // Filtrar apenas entradas com valor
+    const validPayload = payload.filter((e: any) => e.value !== null && e.value !== undefined)
 
-      const getSeriesLabel = (entry: any) => {
-        const dk = entry?.dataKey
-        if (dk === 'receitasProj' || /receitas.*proje/i.test(String(entry?.name))) return 'Receita projetada'
-        if (dk === 'despesasProj' || /despesas.*proje/i.test(String(entry?.name))) return 'Despesa projetada'
-        if (dk === 'receitasHist') return 'Receitas'
-        if (dk === 'despesasHist') return 'Despesas'
-        return String(entry?.name ?? '')
-      }
+    const displayPayload = isProjected
+      ? validPayload.filter((e: any) => e.dataKey === 'receitasProj' || e.dataKey === 'despesasProj')
+      : validPayload.filter((e: any) => e.dataKey === 'receitasHist' || e.dataKey === 'despesasHist')
 
-      // Define rótulo do cabeçalho mais específico quando possível
-      const headerSpecificLabel = hasReceitaProj
-        ? 'Receita projetada'
-        : hasDespesaProj
-          ? 'Despesa projetada'
-          : (isProjectedTooltip ? 'Projeção' : 'Histórico')
-
-      return (
-        <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
-          <p className="font-medium text-gray-800 mb-2">
-            {label}{' '}
-            <span className={`${isProjectedTooltip ? 'text-blue-500' : 'text-green-600'} text-xs`}>
-              ({headerSpecificLabel})
-            </span>
-          </p>
-          {displayPayload.map((entry: any, index: number) => (
-            <p key={index} style={{ color: entry.color }} className="text-sm">
-              {getSeriesLabel(entry)}: R$ {Number(entry.value).toLocaleString('pt-BR')}
-            </p>
-          ))}
-          {isProjectedTooltip && (
-            <p className="text-xs text-blue-600 mt-1">
-              <Zap className="inline h-3 w-3 mr-1" />
-              Baseado em tendências históricas
-            </p>
-          )}
-        </div>
-      )
+    const labelMap: Record<string, string> = {
+      receitasProj: 'Receita projetada',
+      despesasProj: 'Despesa projetada',
+      receitasHist: 'Receitas',
+      despesasHist: 'Despesas',
     }
-    return null
+
+    return (
+      <div className="bg-white p-3 border border-gray-200 rounded-lg shadow-lg">
+        <p className="font-medium text-gray-800 mb-2">
+          {label}{' '}
+          <span className={isProjected ? 'text-blue-500 text-xs' : 'text-green-600 text-xs'}>
+            ({isProjected ? 'Projeção' : 'Histórico'})
+          </span>
+        </p>
+        {displayPayload.map((entry: any, idx: number) => (
+          <p key={idx} style={{ color: entry.color }} className="text-sm">
+            {labelMap[entry.dataKey] || entry.name}: R$ {Number(entry.value).toLocaleString('pt-BR')}
+          </p>
+        ))}
+        {isProjected && (
+          <p className="text-xs text-blue-600 mt-1">
+            <Zap className="inline h-3 w-3 mr-1" />
+            Baseado em tendências históricas
+          </p>
+        )}
+      </div>
+    )
   }
 
   return (
