@@ -60,24 +60,6 @@ export default function SubscribePage() {
             <p>Ao clicar em "Assinar Agora", você será redirecionado para realizar o pagamento seguro.</p>
             <p className="mt-2">Após o pagamento confirmado, você receberá acesso imediato à plataforma.</p>
           </div>
-
-          <div className="pt-6 border-t">
-            <h3 className="font-semibold mb-3">Como funciona:</h3>
-            <ol className="space-y-2 text-sm text-muted-foreground">
-              <li className="flex gap-2">
-                <span className="font-bold text-primary">1.</span>
-                <span>Clique em "Assinar Agora" e complete o pagamento</span>
-              </li>
-              <li className="flex gap-2">
-                <span className="font-bold text-primary">2.</span>
-                <span>Você receberá um email com suas credenciais de acesso</span>
-              </li>
-              <li className="flex gap-2">
-                <span className="font-bold text-primary">3.</span>
-                <span>Comece a usar a plataforma imediatamente</span>
-              </li>
-            </ol>
-          </div>
         </CardContent>
       </Card>
     </div>
