@@ -33,7 +33,7 @@ export default function SubscribePage() {
             Transforme sua gestão rural com inteligência e tecnologia
           </CardDescription>
           <div className="pt-4">
-            <div className="text-5xl font-bold text-primary">R$ 97</div>
+            <div className="text-5xl font-bold text-primary">R$ 99</div>
             <div className="text-muted-foreground">único pagamento</div>
           </div>
         </CardHeader>
