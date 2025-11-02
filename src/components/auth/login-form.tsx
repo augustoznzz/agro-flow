@@ -14,6 +14,13 @@ export function LoginForm() {
 
   const handleAuth = async (e: React.FormEvent) => {
     e.preventDefault()
+    
+    // Se for signup, redireciona para a página de assinatura
+    if (isSignUp) {
+      window.location.href = '/subscribe'
+      return
+    }
+
     setLoading(true)
 
     try {
@@ -25,20 +32,11 @@ export function LoginForm() {
         return
       }
 
-      if (isSignUp) {
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-        })
-        if (error) throw error
-        alert('Verifique seu email para confirmar a conta!')
-      } else {
-        const { error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        })
-        if (error) throw error
-      }
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      })
+      if (error) throw error
     } catch (error) {
       alert(error instanceof Error ? error.message : 'Erro na autenticação')
     } finally {
@@ -83,7 +81,7 @@ export function LoginForm() {
             className="w-full"
             onClick={() => setIsSignUp(!isSignUp)}
           >
-            {isSignUp ? 'Já tem conta? Faça login' : 'Não tem conta? Crie uma'}
+            {isSignUp ? 'Já tem conta? Faça login' : 'Não tem conta? Assine agora'}
           </Button>
         </form>
       </CardContent>

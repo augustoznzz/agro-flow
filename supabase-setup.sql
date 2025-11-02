@@ -191,6 +191,41 @@ $$ LANGUAGE SQL SECURITY DEFINER;
 -- Configure: "Site URL" com a URL do seu app na Netlify
 
 -- =====================================================
+-- 6. TABELA DE ASSINATURAS (CAKTO)
+-- =====================================================
+
+-- Tabela para rastrear assinaturas de usuários
+CREATE TABLE IF NOT EXISTS subscriptions (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+  user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE UNIQUE,
+  email TEXT NOT NULL,
+  payment_id TEXT NOT NULL UNIQUE,
+  payment_status TEXT NOT NULL CHECK (payment_status IN ('pending', 'paid', 'failed', 'cancelled', 'expired')),
+  payment_date TIMESTAMP WITH TIME ZONE,
+  expires_at TIMESTAMP WITH TIME ZONE,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
+  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
+CREATE INDEX IF NOT EXISTS idx_subscriptions_user_id ON subscriptions(user_id);
+CREATE INDEX IF NOT EXISTS idx_subscriptions_payment_id ON subscriptions(payment_id);
+CREATE INDEX IF NOT EXISTS idx_subscriptions_status ON subscriptions(payment_status);
+
+-- Habilitar RLS na tabela de assinaturas
+ALTER TABLE subscriptions ENABLE ROW LEVEL SECURITY;
+
+-- Usuários podem visualizar suas próprias assinaturas
+CREATE POLICY "Users can view own subscriptions" ON subscriptions
+  FOR SELECT 
+  USING (auth.uid() = user_id);
+
+-- Serviço pode inserir/atualizar assinaturas (via webhook)
+CREATE POLICY "Service role can manage subscriptions" ON subscriptions
+  FOR ALL
+  USING (true)
+  WITH CHECK (true);
+
+-- =====================================================
 -- PRONTO! 🎉
 -- =====================================================
 -- Após executar este script, sua aplicação estará configurada
@@ -200,6 +235,7 @@ $$ LANGUAGE SQL SECURITY DEFINER;
 -- - Suas propriedades
 -- - Seus ciclos de cultivo
 -- - Suas transações
+-- - Sua assinatura
 --
 -- O Supabase garantirá isso automaticamente através do RLS!
 

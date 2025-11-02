@@ -14,12 +14,13 @@ import { CropPlanningAuto } from '@/components/crops/crop-planning-auto'
 import { ReportGenerator } from '@/components/reports/report-generator'
 import { TransactionHistory } from '@/components/transactions/transaction-history'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
 import { ErrorBoundary } from '@/components/ui/error-boundary'
 
 
 
 function MainApp() {
-  const { user, loading } = useAuth()
+  const { user, loading, hasActiveSubscription, subscriptionStatus } = useAuth()
   const { transactions, updateTransaction, deleteTransaction, deleteAllTransactions } = useData()
   const [activeTab, setActiveTab] = useState('dashboard') // Inicia sempre com 'dashboard' para evitar hydration mismatch
 
@@ -55,6 +56,46 @@ function MainApp() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <LoginForm />
+      </div>
+    )
+  }
+
+  // Verificar se tem assinatura ativa
+  if (!hasActiveSubscription) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background p-4">
+        <Card className="w-full max-w-md">
+          <CardHeader>
+            <CardTitle>Assinatura Necessária</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {subscriptionStatus === 'expired' ? (
+              <>
+                <p className="text-muted-foreground">
+                  Sua assinatura expirou. Renove para continuar usando o AgroFlow.
+                </p>
+                <Button 
+                  onClick={() => window.location.href = '/subscribe'}
+                  className="w-full"
+                >
+                  Renovar Assinatura
+                </Button>
+              </>
+            ) : (
+              <>
+                <p className="text-muted-foreground">
+                  Você precisa de uma assinatura ativa para acessar o AgroFlow.
+                </p>
+                <Button 
+                  onClick={() => window.location.href = '/subscribe'}
+                  className="w-full"
+                >
+                  Assinar Agora
+                </Button>
+              </>
+            )}
+          </CardContent>
+        </Card>
       </div>
     )
   }
